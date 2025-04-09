@@ -1,9 +1,14 @@
 {
   "compilerOptions": {
-    "target": "ES6",
-    "module": "commonjs",
-    "esModuleInterop": true,
+    "target": "ES2020",           // or a version you prefer
+    "module": "ESNext",           // tells TS to emit ESM imports/exports
+    "moduleResolution": "node",
     "outDir": "./dist",
-    "rootDir": "./src"
-  }
+    "esModuleInterop": true,      // helps interop with some packages
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
 }

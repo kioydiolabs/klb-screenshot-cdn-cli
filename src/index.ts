@@ -12,11 +12,17 @@ import {
   GetObjectCommandOutput,
 } from "@aws-sdk/client-s3";
 
+const { ENDPOINT, ACCESS_KEY_ID, SECRET_ACCESS_KEY } = process.env;
+
+if (!ENDPOINT || !ACCESS_KEY_ID || !SECRET_ACCESS_KEY) {
+  throw new Error("Missing one or more required environment variables: ENDPOINT, ACCESS_KEY_ID, SECRET_ACCESS_KEY");
+}
+
 const s3 = new S3Client({
-  endpoint: process.env.ENDPOINT,
+  endpoint: ENDPOINT,
   credentials: {
-    accessKeyId: process.env.ACCESS_KEY_ID,
-    secretAccessKey: process.env.SECRET_ACCESS_KEY,
+    accessKeyId: ACCESS_KEY_ID,
+    secretAccessKey: SECRET_ACCESS_KEY,
   },
   region: "auto",
 });
@@ -48,8 +54,10 @@ program
             Key: key,
           }),
         );
-      } catch (e) {
-        console.error(e.message, "Did not touch file.");
+      } catch (e){
+        if (e instanceof Error) {
+          console.error(e.message, "Did not touch file.");
+        }
         process.exit(69);
       }
 
@@ -83,11 +91,15 @@ program
 
         console.log("Deleted.");
       } catch (e) {
-        console.error(e.message);
+        if (e instanceof Error) {
+          console.error(e.message);
+        }
         console.log("File was not deleted.");
       }
     } catch (error) {
-      console.error("An error occurred:", error.message);
+      if (error instanceof Error) {
+        console.error("An error occurred:", error.message);
+      }
       process.exit(1);
     }
   });

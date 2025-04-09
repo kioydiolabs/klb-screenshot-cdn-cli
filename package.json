@@ -10,7 +10,7 @@
     "start": "node dist/index.js"
   },
   "bin": {
-    "cdn": "./index.js"
+    "cdn": "./dist/index.js"
   },
   "keywords": [],
   "author": "",
