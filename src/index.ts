@@ -12,12 +12,21 @@ import { mkdirSync, existsSync } from 'fs';
 
 dotenv.config();
 
+console.log(
+  "\n----------------------------------------------------------------",
+);
+console.log("KioydioLabs Screenshot CDN Manager (C) 2025");
+console.log(
+  "----------------------------------------------------------------\n",
+);
+
 const CONFIG_DIR = join(homedir(), '.cdn-cli');
 const CONFIG_PATH = join(CONFIG_DIR, 'config.json');
 
 function loadCredentials() {
   if (!fs.existsSync(CONFIG_PATH)) {
-    throw new Error('No credentials found. Run `cdn configure` first.');
+    console.error('No credentials found. Run `cdn configure` first.');
+    process.exit(69);
   }
 
   return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
@@ -32,10 +41,6 @@ import {
 
 const { endpoint, accessKeyId, secretAccessKey, bucketName } = loadCredentials();
 
-if (!endpoint || !accessKeyId || !secretAccessKey || !bucketName) {
-  process.exit(69);
-}
-
 const s3 = new S3Client({
   endpoint: endpoint,
   credentials: {
@@ -44,14 +49,6 @@ const s3 = new S3Client({
   },
   region: "auto",
 });
-
-console.log(
-  "\n----------------------------------------------------------------",
-);
-console.log("KioydioLabs Screenshot CDN Manager (C) 2025");
-console.log(
-  "----------------------------------------------------------------\n",
-);
 
 // Define the 'delete' command
 program
