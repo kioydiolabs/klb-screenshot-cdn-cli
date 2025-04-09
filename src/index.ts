@@ -4,6 +4,13 @@ import { program } from "commander";
 import inquirer from "inquirer";
 import dotenv from "dotenv";
 
+import {
+  S3Client,
+  DeleteObjectCommand,
+  GetObjectCommand,
+  GetObjectCommandOutput,
+} from "@aws-sdk/client-s3";
+
 import { homedir } from 'os';
 import { join } from 'path';
 
@@ -32,23 +39,6 @@ function loadCredentials() {
   return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
 }
 
-import {
-  S3Client,
-  DeleteObjectCommand,
-  GetObjectCommand,
-  GetObjectCommandOutput,
-} from "@aws-sdk/client-s3";
-
-const { endpoint, accessKeyId, secretAccessKey, bucketName } = loadCredentials();
-
-const s3 = new S3Client({
-  endpoint: endpoint,
-  credentials: {
-    accessKeyId: accessKeyId,
-    secretAccessKey: secretAccessKey,
-  },
-  region: "auto",
-});
 
 // Define the 'delete' command
 program
@@ -56,6 +46,17 @@ program
   .description("Delete a file from the CDN by providing its URL.")
   .option("-f, --force", "Skip confirmation prompt and delete immediately")
   .action(async (url: string, options: { force?: boolean }) => {
+    const { endpoint, accessKeyId, secretAccessKey, bucketName } = loadCredentials();
+    
+    const s3 = new S3Client({
+      endpoint: endpoint,
+      credentials: {
+        accessKeyId: accessKeyId,
+        secretAccessKey: secretAccessKey,
+      },
+      region: "auto",
+    });
+    
     try {
       const key = String(url).slice(24);
       const filename = String(url).slice(35);
