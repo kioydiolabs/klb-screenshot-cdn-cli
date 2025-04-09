@@ -36,7 +36,15 @@ function loadCredentials() {
     process.exit(69);
   }
 
-  return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
+  const creds = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
+  const { endpoint, accessKeyId, secretAccessKey, bucketName, domain } = creds;
+  
+  if (!endpoint || !accessKeyId || !secretAccessKey || !bucketName || !domain) {
+    console.error('No credentials found or some credentials missing after an update. (Re)run `cdn configure` first.');
+    process.exit(69);
+  }
+
+  return creds;
 }
 
 
@@ -46,7 +54,7 @@ program
   .description("Delete a file from the CDN by providing its URL.")
   .option("-f, --force", "Skip confirmation prompt and delete immediately")
   .action(async (url: string, options: { force?: boolean }) => {
-    const { endpoint, accessKeyId, secretAccessKey, bucketName } = loadCredentials();
+    const { endpoint, accessKeyId, secretAccessKey, bucketName, domain } = loadCredentials();
     
     const s3 = new S3Client({
       endpoint: endpoint,
@@ -58,8 +66,11 @@ program
     });
     
     try {
-      const key = String(url).slice(24);
-      const filename = String(url).slice(35);
+      const index = url.indexOf(domain);
+      
+      const key = url.substring(index + domain.length + 1);
+
+      console.log(key);
 
       let result: GetObjectCommandOutput | null;
 
@@ -79,7 +90,7 @@ program
 
       if (!options.force) {
         console.log(
-          `You are about to delete this file: ${filename},\nwhich was uploaded on: ${result.LastModified}.\n`,
+          `You are about to delete this file: ${key},\nwhich was uploaded on: ${result.LastModified}.\n`,
         );
 
         const answer = await inquirer.prompt([
@@ -124,11 +135,32 @@ program
 .command('configure')
 .description('Configure your CDN credentials')
 .action(async () => {
+  
+  let creds: { endpoint: string; accessKeyId: string; secretAccessKey: string; bucketName: string; domain: string; } = {
+    endpoint: "",
+    accessKeyId: "",
+    secretAccessKey: "",
+    bucketName: "",
+    domain:""
+  };
+
+  if (fs.existsSync(CONFIG_PATH)) {
+    const { endpoint, accessKeyId, secretAccessKey, bucketName, domain } = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
+    creds = {
+      endpoint: endpoint ? endpoint : "",
+      accessKeyId: accessKeyId ? accessKeyId : "",
+      secretAccessKey: secretAccessKey ? secretAccessKey : "",
+      bucketName: bucketName ? bucketName : "",
+      domain: domain ? domain : ""
+    }
+  }
+  
   const answers = await inquirer.prompt([
-    { type: 'input', name: 'endpoint', message: 'CDN Endpoint:' },
-    { type: 'input', name: 'accessKeyId', message: 'Access Key ID:' },
-    { type: 'password', name: 'secretAccessKey', message: 'Secret Access Key:' },
-    { type: 'input', name: 'bucketName', message: 'Bucket Name:' },
+    { type: 'input', name: 'endpoint', message: 'CDN Endpoint:', default: creds.endpoint },
+    { type: 'input', name: 'accessKeyId', message: 'Access Key ID:', default: creds.accessKeyId },
+    { type: 'input', name: 'secretAccessKey', message: 'Secret Access Key:', default: creds.secretAccessKey },
+    { type: 'input', name: 'bucketName', message: 'Bucket Name:', default: creds.bucketName },
+    { type: 'input', name: 'domain', message: 'Domain (e.g. mycdn.kioydiolabs.dev):', default: creds.domain },
   ]);
 
   if (!existsSync(CONFIG_DIR)) {
