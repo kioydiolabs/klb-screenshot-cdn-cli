@@ -22,7 +22,7 @@ dotenv.config();
 console.log(
   "\n----------------------------------------------------------------",
 );
-console.log("KioydioLabs Screenshot CDN Manager (C) 2025");
+console.log("KioydioLabs Screenshot CDN CLI (C) 2025");
 console.log(
   "----------------------------------------------------------------\n",
 );
