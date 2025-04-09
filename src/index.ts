@@ -3,7 +3,25 @@
 import { program } from "commander";
 import inquirer from "inquirer";
 import dotenv from "dotenv";
+
+import { homedir } from 'os';
+import { join } from 'path';
+
+import fs from 'fs';
+import { mkdirSync, existsSync } from 'fs';
+
 dotenv.config();
+
+const CONFIG_DIR = join(homedir(), '.cdn-cli');
+const CONFIG_PATH = join(CONFIG_DIR, 'config.json');
+
+function loadCredentials() {
+  if (!fs.existsSync(CONFIG_PATH)) {
+    throw new Error('No credentials found. Run `cdn configure` first.');
+  }
+
+  return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
+}
 
 import {
   S3Client,
@@ -12,17 +30,17 @@ import {
   GetObjectCommandOutput,
 } from "@aws-sdk/client-s3";
 
-const { ENDPOINT, ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME } = process.env;
+const { endpoint, accessKeyId, secretAccessKey, bucketName } = loadCredentials();
 
-if (!ENDPOINT || !ACCESS_KEY_ID || !SECRET_ACCESS_KEY || !BUCKET_NAME) {
-  throw new Error("Missing one or more required environment variables: ENDPOINT, ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME");
+if (!endpoint || !accessKeyId || !secretAccessKey || !bucketName) {
+  process.exit(69);
 }
 
 const s3 = new S3Client({
-  endpoint: ENDPOINT,
+  endpoint: endpoint,
   credentials: {
-    accessKeyId: ACCESS_KEY_ID,
-    secretAccessKey: SECRET_ACCESS_KEY,
+    accessKeyId: accessKeyId,
+    secretAccessKey: secretAccessKey,
   },
   region: "auto",
 });
@@ -50,7 +68,7 @@ program
       try {
         result = await s3.send(
           new GetObjectCommand({
-            Bucket: BUCKET_NAME,
+            Bucket: bucketName,
             Key: key,
           }),
         );
@@ -84,7 +102,7 @@ program
       try {
         await s3.send(
           new DeleteObjectCommand({
-            Bucket: BUCKET_NAME,
+            Bucket: bucketName,
             Key: key,
           }),
         );
@@ -102,7 +120,26 @@ program
       }
       process.exit(1);
     }
-  });
+});
+
+program
+.command('configure')
+.description('Configure your CDN credentials')
+.action(async () => {
+  const answers = await inquirer.prompt([
+    { type: 'input', name: 'endpoint', message: 'CDN Endpoint:' },
+    { type: 'input', name: 'accessKeyId', message: 'Access Key ID:' },
+    { type: 'password', name: 'secretAccessKey', message: 'Secret Access Key:' },
+    { type: 'input', name: 'bucketName', message: 'Bucket Name:' },
+  ]);
+
+  if (!existsSync(CONFIG_DIR)) {
+    mkdirSync(CONFIG_DIR);
+  }
+
+  fs.writeFileSync(CONFIG_PATH, JSON.stringify(answers, null, 2));
+  console.log(`✅ Credentials saved to ${CONFIG_PATH}`);
+});
 
 // If no command is provided, display help
 if (!process.argv.slice(2).length) {
