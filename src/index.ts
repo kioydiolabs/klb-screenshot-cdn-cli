@@ -12,10 +12,10 @@ import {
   GetObjectCommandOutput,
 } from "@aws-sdk/client-s3";
 
-const { ENDPOINT, ACCESS_KEY_ID, SECRET_ACCESS_KEY } = process.env;
+const { ENDPOINT, ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME } = process.env;
 
-if (!ENDPOINT || !ACCESS_KEY_ID || !SECRET_ACCESS_KEY) {
-  throw new Error("Missing one or more required environment variables: ENDPOINT, ACCESS_KEY_ID, SECRET_ACCESS_KEY");
+if (!ENDPOINT || !ACCESS_KEY_ID || !SECRET_ACCESS_KEY || !BUCKET_NAME) {
+  throw new Error("Missing one or more required environment variables: ENDPOINT, ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME");
 }
 
 const s3 = new S3Client({
@@ -50,7 +50,7 @@ program
       try {
         result = await s3.send(
           new GetObjectCommand({
-            Bucket: "kioydiocdn",
+            Bucket: BUCKET_NAME,
             Key: key,
           }),
         );
@@ -84,7 +84,7 @@ program
       try {
         await s3.send(
           new DeleteObjectCommand({
-            Bucket: "kioydiocdn",
+            Bucket: BUCKET_NAME,
             Key: key,
           }),
         );
