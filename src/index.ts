@@ -37,9 +37,25 @@ function loadCredentials() {
   }
 
   const creds = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf-8"));
-  const { endpoint, accessKeyId, secretAccessKey, bucketName, domain } = creds;
+  const {
+    endpoint,
+    accessKeyId,
+    secretAccessKey,
+    bucketName,
+    domain,
+    cloudflareApiKey,
+    cloudflareZoneId,
+  } = creds;
 
-  if (!endpoint || !accessKeyId || !secretAccessKey || !bucketName || !domain) {
+  if (
+    !endpoint ||
+    !accessKeyId ||
+    !secretAccessKey ||
+    !bucketName ||
+    !domain ||
+    !cloudflareApiKey ||
+    !cloudflareZoneId
+  ) {
     console.error(
       "No credentials found or some credentials missing after an update. (Re)run `cdn configure` first.",
     );
@@ -54,9 +70,20 @@ program
   .command("delete <url>")
   .description("Delete a file from the CDN by providing its URL.")
   .option("-f, --force", "Skip confirmation prompt and delete immediately")
+  .option(
+    "-p, --purge-cache",
+    "Purge Cloudflare cache to stop serving file immediately",
+  )
   .action(async (url: string, options: { force?: boolean }) => {
-    const { endpoint, accessKeyId, secretAccessKey, bucketName, domain } =
-      loadCredentials();
+    const {
+      endpoint,
+      accessKeyId,
+      secretAccessKey,
+      bucketName,
+      domain,
+      cloudflareApiKey,
+      cloudflareZoneId,
+    } = loadCredentials();
 
     const s3 = new S3Client({
       endpoint: endpoint,
@@ -71,8 +98,6 @@ program
       const index = url.indexOf(domain);
 
       const key = url.substring(index + domain.length + 1);
-
-      console.log(key);
 
       let result: GetObjectCommandOutput | null;
 
@@ -119,6 +144,44 @@ program
         );
 
         console.log("Deleted.");
+
+        try {
+          console.log("Attempting to purge cache...");
+
+          const response = await fetch(
+            `https://api.cloudflare.com/client/v4/zones/${cloudflareZoneId}/purge_cache`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${cloudflareApiKey}`,
+              },
+              body: JSON.stringify({
+                files: [url],
+              }),
+            },
+          );
+          const jsonResponse = await response.json();
+
+          if (jsonResponse.success) {
+            console.log("Purged cache successfully.");
+            process.exit(0);
+          } else {
+            console.log(
+              `Failed to purge cache. The following errors were reported by Cloudflare: `,
+            );
+            jsonResponse.errors.forEach(
+              (error: { code: Number; message: string }) => {
+                console.log(`${error.code}: ${error.message}`);
+              },
+            );
+          }
+        } catch (error) {
+          if (error instanceof Error) {
+            console.error(error);
+          }
+          process.exit(1);
+        }
       } catch (e) {
         if (e instanceof Error) {
           console.error(e.message);
@@ -143,23 +206,36 @@ program
       secretAccessKey: string;
       bucketName: string;
       domain: string;
+      cloudflareApiKey: string;
+      cloudflareZoneId: string;
     } = {
       endpoint: "",
       accessKeyId: "",
       secretAccessKey: "",
       bucketName: "",
       domain: "",
+      cloudflareApiKey: "",
+      cloudflareZoneId: "",
     };
 
     if (fs.existsSync(CONFIG_PATH)) {
-      const { endpoint, accessKeyId, secretAccessKey, bucketName, domain } =
-        JSON.parse(fs.readFileSync(CONFIG_PATH, "utf-8"));
+      const {
+        endpoint,
+        accessKeyId,
+        secretAccessKey,
+        bucketName,
+        domain,
+        cloudflareApiKey,
+        cloudflareZoneId,
+      } = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf-8"));
       creds = {
         endpoint: endpoint ? endpoint : "",
         accessKeyId: accessKeyId ? accessKeyId : "",
         secretAccessKey: secretAccessKey ? secretAccessKey : "",
         bucketName: bucketName ? bucketName : "",
         domain: domain ? domain : "",
+        cloudflareApiKey: cloudflareApiKey ? cloudflareApiKey : "",
+        cloudflareZoneId: cloudflareZoneId ? cloudflareZoneId : "",
       };
     }
 
@@ -193,6 +269,19 @@ program
         name: "domain",
         message: "Domain (e.g. mycdn.kioydiolabs.dev):",
         default: creds.domain,
+      },
+      {
+        type: "input",
+        name: "cloudflareApiKey",
+        message:
+          "Cloudflare API Token (must have the Purce Cache permission for the specific zone):",
+        default: creds.cloudflareApiKey,
+      },
+      {
+        type: "input",
+        name: "cloudflareZoneId",
+        message: "Cloudflare Zone ID:",
+        default: creds.cloudflareZoneId,
       },
     ]);
 
