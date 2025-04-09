@@ -1,5 +1,5 @@
 {
-  "name": "klb-screenshot-cdn-cli",
+  "name": "@kioydiolabs/klb-screenshot-cdn-cli",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
