@@ -35,7 +35,7 @@ console.log(
 const notifier = updateNotifier({ pkg: packageJson });
 notifier.notify();
 
-program.version("1.5.2", "-v, --version", "Output the current version");
+program.version("1.5.3", "-v, --version", "Output the current version");
 
 const CONFIG_DIR = join(homedir(), ".cdn-cli");
 const CONFIG_PATH = join(CONFIG_DIR, "config.json");
