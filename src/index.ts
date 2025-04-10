@@ -27,7 +27,7 @@ console.log(
   "----------------------------------------------------------------\n",
 );
 
-program.version("1.1.1", "-v, --version", "Output the current version");
+program.version("1.2.0", "-v, --version", "Output the current version");
 
 const CONFIG_DIR = join(homedir(), ".cdn-cli");
 const CONFIG_PATH = join(CONFIG_DIR, "config.json");
@@ -76,127 +76,131 @@ program
     "-p, --purge-cache",
     "Purge Cloudflare cache to stop serving file immediately",
   )
-  .action(async (url: string, options: { force?: boolean }) => {
-    const {
-      endpoint,
-      accessKeyId,
-      secretAccessKey,
-      bucketName,
-      domain,
-      cloudflareApiKey,
-      cloudflareZoneId,
-    } = loadCredentials();
+  .action(
+    async (url: string, options: { force?: boolean; purgeCache?: boolean }) => {
+      const {
+        endpoint,
+        accessKeyId,
+        secretAccessKey,
+        bucketName,
+        domain,
+        cloudflareApiKey,
+        cloudflareZoneId,
+      } = loadCredentials();
 
-    const s3 = new S3Client({
-      endpoint: endpoint,
-      credentials: {
-        accessKeyId: accessKeyId,
-        secretAccessKey: secretAccessKey,
-      },
-      region: "auto",
-    });
-
-    try {
-      const index = url.indexOf(domain);
-
-      const key = url.substring(index + domain.length + 1);
-
-      let result: GetObjectCommandOutput | null;
+      const s3 = new S3Client({
+        endpoint: endpoint,
+        credentials: {
+          accessKeyId: accessKeyId,
+          secretAccessKey: secretAccessKey,
+        },
+        region: "auto",
+      });
 
       try {
-        result = await s3.send(
-          new GetObjectCommand({
-            Bucket: bucketName,
-            Key: key,
-          }),
-        );
-      } catch (e) {
-        if (e instanceof Error) {
-          console.error(e.message, "Did not touch file.");
-        }
-        process.exit(69);
-      }
+        const index = url.indexOf(domain);
 
-      if (!options.force) {
-        console.log(
-          `You are about to delete this file: ${key},\nwhich was uploaded on: ${result.LastModified}.\n`,
-        );
+        const key = url.substring(index + domain.length + 1);
 
-        const answer = await inquirer.prompt([
-          {
-            type: "confirm",
-            name: "confirmDelete",
-            message: "Do you actually want to delete this file?",
-            default: false,
-          },
-        ]);
-
-        if (!answer.confirmDelete) {
-          console.log("Cancelled. File not touched.");
-          process.exit(0);
-        }
-      }
-
-      try {
-        await s3.send(
-          new DeleteObjectCommand({
-            Bucket: bucketName,
-            Key: key,
-          }),
-        );
-
-        console.log("Deleted.");
+        let result: GetObjectCommandOutput | null;
 
         try {
-          console.log("Attempting to purge cache...");
-
-          const response = await fetch(
-            `https://api.cloudflare.com/client/v4/zones/${cloudflareZoneId}/purge_cache`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${cloudflareApiKey}`,
-              },
-              body: JSON.stringify({
-                files: [url],
-              }),
-            },
+          result = await s3.send(
+            new GetObjectCommand({
+              Bucket: bucketName,
+              Key: key,
+            }),
           );
-          const jsonResponse = await response.json();
+        } catch (e) {
+          if (e instanceof Error) {
+            console.error(e.message, "Did not touch file.");
+          }
+          process.exit(69);
+        }
 
-          if (jsonResponse.success) {
-            console.log("Purged cache successfully.");
+        if (!options.force) {
+          console.log(
+            `You are about to delete this file: ${key},\nwhich was uploaded on: ${result.LastModified}.\n`,
+          );
+
+          const answer = await inquirer.prompt([
+            {
+              type: "confirm",
+              name: "confirmDelete",
+              message: "Do you actually want to delete this file?",
+              default: false,
+            },
+          ]);
+
+          if (!answer.confirmDelete) {
+            console.log("Cancelled. File not touched.");
             process.exit(0);
-          } else {
-            console.log(
-              `Failed to purge cache. The following errors were reported by Cloudflare: `,
-            );
-            jsonResponse.errors.forEach(
-              (error: { code: Number; message: string }) => {
-                console.log(`${error.code}: ${error.message}`);
-              },
-            );
           }
-        } catch (error) {
-          if (error instanceof Error) {
-            console.error(error);
+        }
+
+        try {
+          await s3.send(
+            new DeleteObjectCommand({
+              Bucket: bucketName,
+              Key: key,
+            }),
+          );
+
+          console.log("Deleted.");
+
+          if (options.purgeCache) {
+            try {
+              console.log("Attempting to purge cache...");
+
+              const response = await fetch(
+                `https://api.cloudflare.com/client/v4/zones/${cloudflareZoneId}/purge_cache`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${cloudflareApiKey}`,
+                  },
+                  body: JSON.stringify({
+                    files: [url],
+                  }),
+                },
+              );
+              const jsonResponse = await response.json();
+
+              if (jsonResponse.success) {
+                console.log("Purged cache successfully.");
+                process.exit(0);
+              } else {
+                console.log(
+                  `Failed to purge cache. The following errors were reported by Cloudflare: `,
+                );
+                jsonResponse.errors.forEach(
+                  (error: { code: Number; message: string }) => {
+                    console.log(`${error.code}: ${error.message}`);
+                  },
+                );
+              }
+            } catch (error) {
+              if (error instanceof Error) {
+                console.error(error);
+              }
+              process.exit(1);
+            }
           }
-          process.exit(1);
+        } catch (e) {
+          if (e instanceof Error) {
+            console.error(e.message);
+          }
+          console.log("File was not deleted.");
         }
-      } catch (e) {
-        if (e instanceof Error) {
-          console.error(e.message);
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error("An error occurred:", error.message);
         }
-        console.log("File was not deleted.");
+        process.exit(1);
       }
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error("An error occurred:", error.message);
-      }
-      process.exit(1);
-    }
-  });
+    },
+  );
 
 program
   .command("configure")
@@ -293,13 +297,6 @@ program
 
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(answers, null, 2));
     console.log(`✅ Credentials saved to ${CONFIG_PATH}`);
-  });
-
-program
-  .command("version")
-  .description("Get the latest version")
-  .action(async () => {
-    console.log("Version 1.1.0");
   });
 
 // If no command is provided, display help
