@@ -1,6 +1,6 @@
 {
   "name": "@kioydiolabs/klb-screenshot-cdn-cli",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -23,10 +23,12 @@
     "commander": "^13.1.0",
     "dotenv": "^16.4.7",
     "inquirer": "^12.5.2",
-    "pretty-bytes": "^6.1.1"
+    "pretty-bytes": "^6.1.1",
+    "update-notifier": "^7.3.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "@types/update-notifier": "^6.0.8",
     "prettier": "^3.5.3",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3"
