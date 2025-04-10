@@ -27,7 +27,7 @@ console.log(
   "----------------------------------------------------------------\n",
 );
 
-program.version("1.2.0", "-v, --version", "Output the current version");
+program.version("1.2.1", "-v, --version", "Output the current version");
 
 const CONFIG_DIR = join(homedir(), ".cdn-cli");
 const CONFIG_PATH = join(CONFIG_DIR, "config.json");
