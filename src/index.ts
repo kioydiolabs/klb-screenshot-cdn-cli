@@ -27,6 +27,8 @@ console.log(
   "----------------------------------------------------------------\n",
 );
 
+program.version("1.1.1", "-v, --version", "Output the current version");
+
 const CONFIG_DIR = join(homedir(), ".cdn-cli");
 const CONFIG_PATH = join(CONFIG_DIR, "config.json");
 
@@ -291,6 +293,13 @@ program
 
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(answers, null, 2));
     console.log(`✅ Credentials saved to ${CONFIG_PATH}`);
+  });
+
+program
+  .command("version")
+  .description("Get the latest version")
+  .action(async () => {
+    console.log("Version 1.1.0");
   });
 
 // If no command is provided, display help
