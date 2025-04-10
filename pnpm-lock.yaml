@@ -23,6 +23,9 @@ importers:
       inquirer:
         specifier: ^12.5.2
         version: 12.5.2(@types/node@22.14.0)
+      pretty-bytes:
+        specifier: ^6.1.1
+        version: 6.1.1
       update-notifier:
         specifier: ^7.3.1
         version: 7.3.1
@@ -1034,6 +1037,10 @@ packages:
     resolution: {integrity: sha512-QQtaxnoDJeAkDvDKWCLiwIXkTgRhwYDEQCghU9Z6q03iyek/rxRh/2lC3HB7P8sWT2xC/y5JDctPLBIGzHKbhw==}
     engines: {node: '>=14'}
     hasBin: true
+
+  pretty-bytes@6.1.1:
+    resolution: {integrity: sha512-mQUvGU6aUFQ+rNvTIAcZuWGRT9a6f6Yrg9bHs4ImKF+HZCEK+plBvnAZYSIQztknZF2qnzNtr6F8s0+IuptdlQ==}
+    engines: {node: ^14.13.1 || >=16.0.0}
 
   proto-list@1.2.4:
     resolution: {integrity: sha512-vtK/94akxsTMhe0/cbfpR+syPuszcuwhqVjJq26CuNDgFGj682oRBXOP5MJpv2r7JtE8MsiepGIqvvOTBwn2vA==}
@@ -2534,6 +2541,8 @@ snapshots:
       semver: 7.7.1
 
   prettier@3.5.3: {}
+
+  pretty-bytes@6.1.1: {}
 
   proto-list@1.2.4: {}
 

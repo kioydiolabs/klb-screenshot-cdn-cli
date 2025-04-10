@@ -20,6 +20,8 @@ import { join } from "path";
 import fs from "fs";
 import { mkdirSync, existsSync } from "fs";
 
+import prettyBytes from "pretty-bytes";
+
 dotenv.config();
 
 console.log(
@@ -127,7 +129,7 @@ program
 
         if (!options.force) {
           console.log(
-            `You are about to delete this file: ${key},\nwhich was uploaded on: ${result.LastModified}.\n`,
+            `You are about to delete this file: ${key},\nwhich was uploaded on: ${result.LastModified} and is ${result?.ContentLength ? prettyBytes(result?.ContentLength) : "[size of the file is undefined]"} largen.\n`,
           );
 
           const answer = await inquirer.prompt([
