@@ -70,6 +70,7 @@ function loadCredentials() {
 // Define the 'delete' command
 program
   .command("delete <url>")
+  .alias("d")
   .description("Delete a file from the CDN by providing its URL.")
   .option("-f, --force", "Skip confirmation prompt and delete immediately")
   .option(
@@ -201,6 +202,67 @@ program
       }
     },
   );
+
+program
+  .command("cachepurge <url>")
+  .alias("cp")
+  .description("Purge Cloudflare cache for a file you've already deleted.'")
+  .action(async (url: string) => {
+    const { cloudflareApiKey, cloudflareZoneId } = loadCredentials();
+    console.log(`You are about to manually purge the cache  this file: ${url}`);
+
+    const answer = await inquirer.prompt([
+      {
+        type: "confirm",
+        name: "confirmPurge",
+        message: "Do you actually want to purge cache?",
+        default: false,
+      },
+    ]);
+
+    if (!answer.confirmPurge) {
+      console.log("Cancelled. Cache not touched.");
+      process.exit(0);
+    }
+
+    try {
+      console.log("Attempting to purge cache...");
+
+      const response = await fetch(
+        `https://api.cloudflare.com/client/v4/zones/${cloudflareZoneId}/purge_cache`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${cloudflareApiKey}`,
+          },
+          body: JSON.stringify({
+            files: [url],
+          }),
+        },
+      );
+      const jsonResponse = await response.json();
+
+      if (jsonResponse.success) {
+        console.log("Purged cache successfully.");
+        process.exit(0);
+      } else {
+        console.log(
+          `Failed to purge cache. The following errors were reported by Cloudflare: `,
+        );
+        jsonResponse.errors.forEach(
+          (error: { code: Number; message: string }) => {
+            console.log(`${error.code}: ${error.message}`);
+          },
+        );
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(error);
+      }
+      process.exit(1);
+    }
+  });
 
 program
   .command("configure")
