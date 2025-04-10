@@ -4,9 +4,6 @@ import { program } from "commander";
 import inquirer from "inquirer";
 import dotenv from "dotenv";
 
-import updateNotifier from "update-notifier";
-import packageJson from "../package.json" assert { type: "json" };
-
 import {
   S3Client,
   DeleteObjectCommand,
@@ -32,10 +29,7 @@ console.log(
   "----------------------------------------------------------------\n",
 );
 
-const notifier = updateNotifier({ pkg: packageJson });
-notifier.notify();
-
-program.version("1.5.0", "-v, --version", "Output the current version");
+program.version("1.5.1", "-v, --version", "Output the current version");
 
 const CONFIG_DIR = join(homedir(), ".cdn-cli");
 const CONFIG_PATH = join(CONFIG_DIR, "config.json");
