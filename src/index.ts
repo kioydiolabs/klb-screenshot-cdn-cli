@@ -33,7 +33,7 @@ console.log(
 const notifier = updateNotifier({ pkg: packageJson });
 notifier.notify();
 
-program.version("1.3.0", "-v, --version", "Output the current version");
+program.version("1.4.0", "-v, --version", "Output the current version");
 
 const CONFIG_DIR = join(homedir(), ".cdn-cli");
 const CONFIG_PATH = join(CONFIG_DIR, "config.json");
