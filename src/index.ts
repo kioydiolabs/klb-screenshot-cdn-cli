@@ -4,6 +4,9 @@ import { program } from "commander";
 import inquirer from "inquirer";
 import dotenv from "dotenv";
 
+import updateNotifier from "update-notifier";
+import packageJson from "../package.json" assert { type: "json" };
+
 import {
   S3Client,
   DeleteObjectCommand,
@@ -26,6 +29,9 @@ console.log("KioydioLabs Screenshot CDN CLI (C) 2025");
 console.log(
   "----------------------------------------------------------------\n",
 );
+
+const notifier = updateNotifier({ pkg: packageJson });
+notifier.notify();
 
 program.version("1.3.0", "-v, --version", "Output the current version");
 
@@ -364,6 +370,7 @@ program
 // If no command is provided, display help
 if (!process.argv.slice(2).length) {
   program.outputHelp();
+  process.exit(0);
 }
 
 program.parse(process.argv);
