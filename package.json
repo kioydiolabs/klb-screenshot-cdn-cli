@@ -7,11 +7,11 @@
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "node dist/src/index.js",
     "prepublishOnly": "tsc"
   },
   "bin": {
-    "cdn": "./dist/index.js"
+    "cdn": "./dist/src/index.js"
   },
   "keywords": [],
   "author": "KioydioLabs",
