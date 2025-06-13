@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /*
  * Copyright 2025 KioydioLabs
  *
@@ -10,41 +8,36 @@
  * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { program } from "commander";
-import dotenv from "dotenv";
-import updateNotifier from "update-notifier";
-import packageJson from "../package.json" with { type: "json" };
+export async function purgeCloudflareCache(options: {
+  cloudflareZoneId: string;
+  cloudflareApiKey: string;
+  url: string;
+}) {
+  console.log("Attempting to purge cache...");
 
-dotenv.config();
+  const response = await fetch(
+    `https://api.cloudflare.com/client/v4/zones/${options.cloudflareZoneId}/purge_cache`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${options.cloudflareApiKey}`,
+      },
+      body: JSON.stringify({
+        files: [options.url],
+      }),
+    },
+  );
+  const jsonResponse = await response.json();
 
-console.log(
-  "\n----------------------------------------------------------------",
-);
-console.log("KioydioLabs Screenshot CDN CLI (C) 2025");
-console.log(
-  "----------------------------------------------------------------\n",
-);
-
-updateNotifier({ pkg: packageJson }).notify();
-
-program.version(
-  packageJson.version,
-  "-v, --version",
-  "Output the current version",
-);
-
-import { configureCredentialsCommand } from "./commands/configure-credentials";
-import { deleteCommand } from "./commands/delete";
-import { purgeCacheCommand } from "./commands/purge-cache";
-
-program.addCommand(configureCredentialsCommand);
-program.addCommand(deleteCommand);
-program.addCommand(purgeCacheCommand);
-
-// If no command is provided, display help
-if (!process.argv.slice(2).length) {
-  program.outputHelp();
-  process.exit(0);
+  if (jsonResponse.success) {
+    console.log("Purged cache successfully.");
+  } else {
+    console.log(
+      `Failed to purge cache. The following errors were reported by Cloudflare: `,
+    );
+    jsonResponse.errors.forEach((error: { code: Number; message: string }) => {
+      console.log(`${error.code}: ${error.message}`);
+    });
+  }
 }
-
-program.parse(process.argv);
