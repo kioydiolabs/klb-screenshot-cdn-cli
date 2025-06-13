@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*' # Only run when version tags are pushed
 
+permissions:
+  contents: write
+
 jobs:
   release:
     name: Publish to npm and GitHub
@@ -30,5 +33,6 @@ jobs:
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
+
         with:
           tag_name: ${{ github.ref_name }}
