@@ -16,7 +16,8 @@ After it has been installed, use `cdn configure` anywhere, to setup your credent
 
 ## Usage
 
-Use `cdn delete <url>` where `<url>` is the URL of the screenshot on the bucket, to delete that screenshot. You will be asked to confirm. You can use the `-f, --force` to skip confirmation (use with caution).
+- Use `cdn delete <url>` where `<url>` is the URL of the screenshot on the bucket, to delete that screenshot. You will be asked to confirm. You can use the `-f, --force` to skip confirmation (use with caution).
+- If you have already deleted a file and want to purge its cache separately, you can use `cdn cachepurge <url>` where `<url>` is the URL of the screenshot.
 
 ## Bug reporting
 
