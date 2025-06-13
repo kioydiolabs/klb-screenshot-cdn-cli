@@ -10,7 +10,7 @@
 
 import { Command } from "commander";
 import { loadCredentials } from "../utils/credentials";
-import inquirer from "inquirer/dist/esm";
+import inquirer from "inquirer";
 import { purgeCloudflareCache } from "../utils/cloudflare";
 
 export const purgeCacheCommand = new Command()
