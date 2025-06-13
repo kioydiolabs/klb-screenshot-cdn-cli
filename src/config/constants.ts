@@ -11,5 +11,5 @@
 import { homedir } from "os";
 import { join } from "path";
 
-const CONFIG_DIR = join(homedir(), ".cdn-cli");
-const CONFIG_PATH = join(CONFIG_DIR, "config.json");
+export const CONFIG_DIR = join(homedir(), ".cdn-cli");
+export const CONFIG_PATH = join(CONFIG_DIR, "config.json");
