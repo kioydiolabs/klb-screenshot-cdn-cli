@@ -18,8 +18,9 @@ import {
   DeleteObjectCommand,
   GetObjectCommandOutput,
 } from "@aws-sdk/client-s3";
-import { loadCredentials } from "../utils/credentials";
-import { purgeCloudflareCache } from "../utils/cloudflare";
+
+import { loadCredentials } from "../utils/credentials.js";
+import { purgeCloudflareCache } from "../utils/cloudflare.js";
 
 export const deleteCommand = new Command()
   .command("delete <url>")

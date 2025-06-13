@@ -9,7 +9,7 @@
  */
 
 import fs from "fs";
-import { CONFIG_PATH } from "../config/constants";
+import { CONFIG_PATH } from "../config/constants.js";
 
 export function loadCredentials() {
   if (!fs.existsSync(CONFIG_PATH)) {

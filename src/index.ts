@@ -15,6 +15,12 @@ import dotenv from "dotenv";
 import updateNotifier from "update-notifier";
 import packageJson from "../package.json" with { type: "json" };
 
+// command imports
+import { configureCredentialsCommand } from "./commands/configure-credentials.js";
+import { deleteCommand } from "./commands/delete.js";
+import { purgeCacheCommand } from "./commands/purge-cache.js";
+import { banner } from "./utils/banner.js";
+
 dotenv.config();
 
 const notifier = updateNotifier({ pkg: packageJson, updateCheckInterval: 0 });
@@ -25,11 +31,6 @@ program.version(
   "-v, --version",
   "Output the current version",
 );
-
-import { configureCredentialsCommand } from "./commands/configure-credentials";
-import { deleteCommand } from "./commands/delete";
-import { purgeCacheCommand } from "./commands/purge-cache";
-import { banner } from "./utils/banner";
 
 program.addCommand(configureCredentialsCommand);
 program.addCommand(deleteCommand);

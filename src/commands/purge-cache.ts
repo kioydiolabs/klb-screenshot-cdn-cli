@@ -9,9 +9,9 @@
  */
 
 import { Command } from "commander";
-import { loadCredentials } from "../utils/credentials";
 import inquirer from "inquirer";
-import { purgeCloudflareCache } from "../utils/cloudflare";
+import { loadCredentials } from "../utils/credentials.js";
+import { purgeCloudflareCache } from "../utils/cloudflare.js";
 
 export const purgeCacheCommand = new Command()
   .command("cachepurge <url>")
