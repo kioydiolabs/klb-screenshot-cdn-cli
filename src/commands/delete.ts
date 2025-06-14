@@ -58,6 +58,15 @@ export const deleteCommand = new Command()
 
       urls = await getUrlsFromAllSources(urls, options.file);
 
+      if (urls.length < 1) {
+        console.log(
+          chalk.ansi256(202)(
+            "You haven't provided any URLs of files to delete.",
+          ),
+        );
+        process.exit(1);
+      }
+
       // initiate s3 client
       const s3 = new S3Client({
         endpoint: endpoint,
@@ -120,7 +129,11 @@ export const deleteCommand = new Command()
       await Promise.all(promises);
 
       if (filesFetched.length < 1) {
-        console.log(chalk.ansi256(202)("No files found."));
+        console.log(
+          chalk.ansi256(202)(
+            "No files match the URLs you entered.\nThat could be either:\n- Because all of the files you entered have already been deleted\n- Or because all URLs are invalid",
+          ),
+        );
         process.exit(1);
       }
 
