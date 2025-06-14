@@ -213,7 +213,7 @@ export const deleteCommand = new Command()
             type: "confirm",
             name: "purgeCache",
             message:
-              "It looks like you haven't specified whether you want cache to be purged to. Should that be done?",
+              "It looks like you haven't specified whether you want cache to be purged too. Should that be done?",
             default: true,
           },
         ]);
