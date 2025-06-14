@@ -13,8 +13,6 @@ export async function purgeCloudflareCache(options: {
   cloudflareApiKey: string;
   url: string;
 }) {
-  console.log("Attempting to purge cache...");
-
   const response = await fetch(
     `https://api.cloudflare.com/client/v4/zones/${options.cloudflareZoneId}/purge_cache`,
     {
@@ -30,14 +28,5 @@ export async function purgeCloudflareCache(options: {
   );
   const jsonResponse = await response.json();
 
-  if (jsonResponse.success) {
-    console.log("Purged cache successfully.");
-  } else {
-    console.log(
-      `Failed to purge cache. The following errors were reported by Cloudflare: `,
-    );
-    jsonResponse.errors.forEach((error: { code: Number; message: string }) => {
-      console.log(`${error.code}: ${error.message}`);
-    });
-  }
+  return !!jsonResponse.success;
 }

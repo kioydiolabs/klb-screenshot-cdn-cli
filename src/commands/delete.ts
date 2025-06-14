@@ -178,7 +178,7 @@ export const deleteCommand = new Command()
 
       let filesDeleted: fileObjectDeleted[] = [];
       const deletedTable = new Table({
-        head: ["URL", "Size", "Date uploaded", "Deleted successfully"],
+        head: ["URL", "Size", "Date uploaded", "Deleted", "Cache purged"],
         // colWidths: [60, 15],
         style: { head: ["cyan"] },
       });
@@ -197,13 +197,6 @@ export const deleteCommand = new Command()
             size: obj.size,
             deleted: true,
           });
-          const tableDeletedObject = [
-            obj.url,
-            obj.size,
-            obj.date?.toString() ?? "",
-            "✔",
-          ];
-          deletedTable.push(tableDeletedObject);
         } catch (e) {
           if (e instanceof Error) {
             filesDeleted.push({
@@ -213,13 +206,6 @@ export const deleteCommand = new Command()
               size: obj.size,
               deleted: false,
             });
-            const tableDeletedObject = [
-              obj.url,
-              obj.size,
-              obj.date?.toString() ?? "",
-              "✗",
-            ];
-            deletedTable.push(tableDeletedObject);
           }
         }
       });
@@ -231,6 +217,47 @@ export const deleteCommand = new Command()
         chalk.bgWhiteBright.black.bold(`\n\nJob overview:\n`) +
           `URLs Provided by user: ${urls.length}\nFiles found: ${filesFetched.length}\nFiles deleted successfully: ${filesDeleted.length}/${filesFetched.length}\n\n `,
       );
+
+      let purgeCache = true;
+      if (!options.purgeCache) {
+        const answer = await inquirer.prompt([
+          {
+            type: "confirm",
+            name: "purgeCache",
+            message:
+              "It looks like you haven't specified whether you want cache to be purged to. Should that be done?",
+            default: true,
+          },
+        ]);
+
+        if (!answer.purgeCache) {
+          purgeCache = false;
+        }
+      }
+
+      if (purgeCache) {
+        const purgeCachePromises = filesDeleted.map(
+          async (obj: fileObjectDeleted) => {
+            const purged = await purgeCloudflareCache({
+              cloudflareZoneId,
+              cloudflareApiKey,
+              url: obj.url,
+            });
+            const tableDeletedObject = [
+              obj.url,
+              obj.size,
+              obj.date?.toString() ?? "",
+              obj.deleted ? "✔" : "✗",
+              purged ? "✔" : "✗",
+            ];
+            deletedTable.push(tableDeletedObject);
+          },
+        );
+
+        spinner.start("Purging cache...");
+        await Promise.all(purgeCachePromises);
+        spinner.succeed("Done!");
+      }
 
       if (filesDeleted.length > 1) {
         const answer = await inquirer.prompt([
