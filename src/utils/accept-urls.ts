@@ -8,25 +8,45 @@
  * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-export async function purgeCloudflareCache(options: {
-  cloudflareZoneId: string;
-  cloudflareApiKey: string;
-  url: string;
-}) {
-  const response = await fetch(
-    `https://api.cloudflare.com/client/v4/zones/${options.cloudflareZoneId}/purge_cache`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${options.cloudflareApiKey}`,
-      },
-      body: JSON.stringify({
-        files: [options.url],
-      }),
-    },
-  );
-  const jsonResponse = await response.json();
+import readline from "readline";
+import fs from "fs";
 
-  return !!jsonResponse.success;
+// Replace your original `urls` array logic with this
+export async function getUrlsFromAllSources(
+  urls: string[],
+  file: string,
+): Promise<string[]> {
+  let finalUrls: string[] = [];
+
+  if (file && fs.existsSync(file)) {
+    const content = fs.readFileSync(file, "utf-8");
+    const lines = content
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+    urls.push(...lines);
+    return lines;
+  }
+
+  for (const input of urls) {
+    finalUrls.push(input);
+  }
+
+  // If input is being piped via stdin, grab that too
+  if (!process.stdin.isTTY) {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      crlfDelay: Infinity,
+    });
+
+    for await (const line of rl) {
+      const trimmed = line.trim();
+      if (trimmed.length > 0) {
+        finalUrls.push(trimmed);
+      }
+    }
+  }
+
+  // Remove duplicates
+  return [...new Set(finalUrls)];
 }

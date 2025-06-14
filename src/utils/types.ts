@@ -8,25 +8,17 @@
  * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-export async function purgeCloudflareCache(options: {
-  cloudflareZoneId: string;
-  cloudflareApiKey: string;
+export type fileObject = {
   url: string;
-}) {
-  const response = await fetch(
-    `https://api.cloudflare.com/client/v4/zones/${options.cloudflareZoneId}/purge_cache`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${options.cloudflareApiKey}`,
-      },
-      body: JSON.stringify({
-        files: [options.url],
-      }),
-    },
-  );
-  const jsonResponse = await response.json();
+  size: string;
+  date?: Date;
+  key: string;
+};
 
-  return !!jsonResponse.success;
-}
+export type fileObjectDeleted = {
+  url: string;
+  size: string;
+  date?: Date;
+  key: string;
+  deleted: boolean;
+};
