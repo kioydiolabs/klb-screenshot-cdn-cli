@@ -25,7 +25,8 @@ import ora from "ora";
 
 import { loadCredentials } from "../utils/credentials.js";
 import { purgeCloudflareCache } from "../utils/cloudflare.js";
-import { fileObject, fileObjectDeleted } from "../utils/types";
+import { fileObject, fileObjectDeleted } from "../utils/types.js";
+import { getUrlsFromAllSources } from "../utils/accept-urls.js";
 
 export const deleteCommand = new Command()
   .command("delete [urls...]")
@@ -36,10 +37,14 @@ export const deleteCommand = new Command()
     "-p, --purge-cache",
     "Purge Cloudflare cache to stop serving file immediately",
   )
+  .option(
+    "--file <filePath>",
+    "Provide a .txt file of URLs (one every new line) for batch jobs",
+  )
   .action(
     async (
       urls: string[],
-      options: { force?: boolean; purgeCache?: boolean },
+      options: { force?: boolean; purgeCache?: boolean; file: string },
     ) => {
       const {
         endpoint,
@@ -50,6 +55,8 @@ export const deleteCommand = new Command()
         cloudflareApiKey,
         cloudflareZoneId,
       } = loadCredentials();
+
+      urls = await getUrlsFromAllSources(urls, options.file);
 
       // initiate s3 client
       const s3 = new S3Client({

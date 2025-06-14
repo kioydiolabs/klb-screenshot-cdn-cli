@@ -4,3 +4,5 @@ node_modules
 dist
 
 .idea
+
+test_urls.txt
