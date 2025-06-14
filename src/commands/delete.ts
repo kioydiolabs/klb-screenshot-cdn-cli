@@ -187,7 +187,7 @@ export const deleteCommand = new Command()
           await s3.send(
             new DeleteObjectCommand({
               Bucket: bucketName,
-              Key: obj.url,
+              Key: obj.key,
             }),
           );
           filesDeleted.push({
@@ -199,24 +199,12 @@ export const deleteCommand = new Command()
           });
         } catch (e) {
           if (e instanceof Error) {
-            filesDeleted.push({
-              url: obj.url,
-              date: obj.date,
-              key: obj.key,
-              size: obj.size,
-              deleted: false,
-            });
           }
         }
       });
 
       await Promise.all(deletePromises);
-      spinner.succeed("Job done.");
-
-      console.log(
-        chalk.bgWhiteBright.black.bold(`\n\nJob overview:\n`) +
-          `URLs Provided by user: ${urls.length}\nFiles found: ${filesFetched.length}\nFiles deleted successfully: ${filesDeleted.length}/${filesFetched.length}\n\n `,
-      );
+      spinner.succeed("Files deleted.");
 
       let purgeCache = true;
       if (!options.purgeCache) {
@@ -235,6 +223,7 @@ export const deleteCommand = new Command()
         }
       }
 
+      let filesPurged: fileObjectDeleted[] = [];
       if (purgeCache) {
         const purgeCachePromises = filesDeleted.map(
           async (obj: fileObjectDeleted) => {
@@ -243,6 +232,15 @@ export const deleteCommand = new Command()
               cloudflareApiKey,
               url: obj.url,
             });
+            if (purged) {
+              filesPurged.push({
+                url: obj.url,
+                date: obj.date,
+                key: obj.key,
+                size: obj.size,
+                deleted: purged,
+              });
+            }
             const tableDeletedObject = [
               obj.url,
               obj.size,
@@ -258,6 +256,11 @@ export const deleteCommand = new Command()
         await Promise.all(purgeCachePromises);
         spinner.succeed("Done!");
       }
+
+      console.log(
+        chalk.bgWhiteBright.black.bold(`\n\nJob overview:\n`) +
+          `URLs Provided by user: ${urls.length}\nFiles found: ${filesFetched.length}\nFiles deleted successfully: ${filesDeleted.length}/${filesFetched.length}\nFiles purged from cache: ${filesPurged.length}/${filesDeleted.length}\n\n `,
+      );
 
       if (filesDeleted.length > 1) {
         const answer = await inquirer.prompt([
