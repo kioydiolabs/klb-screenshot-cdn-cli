@@ -19,11 +19,15 @@ import {
   GetObjectCommandOutput,
 } from "@aws-sdk/client-s3";
 
+import Table from "cli-table3";
+import chalk from "chalk";
+
 import { loadCredentials } from "../utils/credentials.js";
 import { purgeCloudflareCache } from "../utils/cloudflare.js";
+import { fileObject } from "../utils/types";
 
 export const deleteCommand = new Command()
-  .command("delete <url>")
+  .command("delete [urls...]")
   .alias("d")
   .description("Delete a file from the CDN by providing its URL.")
   .option("-f, --force", "Skip confirmation prompt and delete immediately")
@@ -32,7 +36,10 @@ export const deleteCommand = new Command()
     "Purge Cloudflare cache to stop serving file immediately",
   )
   .action(
-    async (url: string, options: { force?: boolean; purgeCache?: boolean }) => {
+    async (
+      urls: string[],
+      options: { force?: boolean; purgeCache?: boolean },
+    ) => {
       const {
         endpoint,
         accessKeyId,
@@ -43,6 +50,7 @@ export const deleteCommand = new Command()
         cloudflareZoneId,
       } = loadCredentials();
 
+      // initiate s3 client
       const s3 = new S3Client({
         endpoint: endpoint,
         credentials: {
@@ -52,13 +60,24 @@ export const deleteCommand = new Command()
         region: "auto",
       });
 
-      try {
-        const index = url.indexOf(domain);
+      // array of all items that will be fetched
+      let filesFetched: fileObject[] = [];
 
+      // table object for cli-table3
+      const table = new Table({
+        head: ["URL", "Size", "Date uploaded"],
+        // colWidths: [60, 15],
+        style: { head: ["cyan"] },
+      });
+
+      // go through every url the user provided, and look it up in s3
+      const promises = urls.map(async (url: string) => {
+        const index = url.indexOf(domain);
         const key = url.substring(index + domain.length + 1);
 
         let result: GetObjectCommandOutput | null;
 
+        // try to fetch the file
         try {
           result = await s3.send(
             new GetObjectCommand({
@@ -66,68 +85,31 @@ export const deleteCommand = new Command()
               Key: key,
             }),
           );
+
+          const fileObject: fileObject = {
+            url: url,
+            size: result.ContentLength
+              ? prettyBytes(result.ContentLength)
+              : "-",
+            date: result.LastModified,
+          };
+          filesFetched.push(fileObject);
+          const tableFileObject = [
+            fileObject.url,
+            fileObject.size,
+            fileObject.date?.toString() ?? "",
+          ];
+          table.push(tableFileObject);
         } catch (e) {
           if (e instanceof Error) {
-            console.error(e.message, "Did not touch file.");
-          }
-          process.exit(69);
-        }
-
-        if (!options.force) {
-          console.log(
-            `You are about to delete this file: ${key},\nwhich was uploaded on: ${result.LastModified} and is ${result?.ContentLength ? prettyBytes(result?.ContentLength) : "[size of the file is undefined]"} largen.\n`,
-          );
-
-          const answer = await inquirer.prompt([
-            {
-              type: "confirm",
-              name: "confirmDelete",
-              message: "Do you actually want to delete this file?",
-              default: false,
-            },
-          ]);
-
-          if (!answer.confirmDelete) {
-            console.log("Cancelled. File not touched.");
-            process.exit(0);
+            console.error(e.message, `Skipping file "${url}"`);
           }
         }
+      });
 
-        try {
-          await s3.send(
-            new DeleteObjectCommand({
-              Bucket: bucketName,
-              Key: key,
-            }),
-          );
+      await Promise.all(promises);
 
-          console.log("Deleted.");
-
-          if (options.purgeCache) {
-            try {
-              await purgeCloudflareCache({
-                cloudflareZoneId,
-                cloudflareApiKey,
-                url,
-              });
-            } catch (error) {
-              if (error instanceof Error) {
-                console.error(error);
-              }
-            }
-            process.exit(1);
-          }
-        } catch (e) {
-          if (e instanceof Error) {
-            console.error(e.message);
-          }
-          console.log("File was not deleted.");
-        }
-      } catch (error) {
-        if (error instanceof Error) {
-          console.error("An error occurred:", error.message);
-        }
-        process.exit(1);
-      }
+      console.log(table.toString());
+      process.exit(0);
     },
   );
