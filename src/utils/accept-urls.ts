@@ -11,7 +11,11 @@
 import readline from "readline";
 import fs from "fs";
 
-// Replace your original `urls` array logic with this
+/* This is the code that accepts the actual input from either:
+URLs just pasted directly into the command, separated with spaces,
+or stdin input from piping something into the command,
+or even a --file that uses a txt with a url on each line
+ */
 export async function getUrlsFromAllSources(
   urls: string[],
   file: string,
