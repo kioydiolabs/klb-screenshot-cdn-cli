@@ -27,6 +27,7 @@ import { loadCredentials } from "../utils/credentials.js";
 import { purgeCloudflareCache } from "../utils/cloudflare.js";
 import { fileObject, fileObjectDeleted } from "../utils/types.js";
 import { getUrlsFromAllSources } from "../utils/accept-urls.js";
+import { showJobOverview } from "../utils/show-job-overview";
 
 const cancelGracefully = (message?: string) => {
   console.log(chalk.green(message ? message : "Cancelled"));
@@ -90,7 +91,7 @@ export const deleteCommand = new Command()
       const table = new Table({
         head: ["URL", "Size", "Date uploaded (Local Timezone)"],
         // colWidths: [60, 15],
-        style: { head: ["cyan"] },
+        style: { head: ["cyan"], border: ["white"] },
       });
 
       // go through every url the user provided, and look it up in s3
@@ -204,7 +205,7 @@ export const deleteCommand = new Command()
       const deletedTable = new Table({
         head: ["URL", "Size", "Date uploaded", "Deleted", "Cache purged"],
         // colWidths: [60, 15],
-        style: { head: ["cyan"] },
+        style: { head: ["cyan"], border: ["white"] },
       });
       const deletePromises = filesFetched.map(async (obj: fileObject) => {
         try {
@@ -324,7 +325,7 @@ export const deleteCommand = new Command()
           const purgeErrors = new Table({
             head: ["File", "Errors"],
             // colWidths: [60, 15],
-            style: { head: ["cyan"] },
+            style: { head: ["cyan"], border: ["white"] },
           });
           filesPurgedFailed.map((filePurged: fileObjectDeleted) => {
             if (filePurged.errors) {
@@ -341,8 +342,12 @@ export const deleteCommand = new Command()
       }
 
       console.log(
-        chalk.bgWhiteBright.black.bold(`\n\nJob overview:\n`) +
-          `URLs Provided by user: ${urls.length}\nFiles found: ${filesFetched.length}\nFiles deleted successfully: ${filesDeleted.length}/${filesFetched.length}\nFiles purged from cache: ${filesPurged.length}/${filesDeleted.length}\n\n `,
+        showJobOverview({
+          filesFetched: filesFetched.length,
+          filesDeleted: filesDeleted.length,
+          filesPurged: filesPurged.length,
+          urls: urls.length,
+        }),
       );
 
       if (filesDeleted.length > 1) {
