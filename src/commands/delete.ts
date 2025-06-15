@@ -248,6 +248,7 @@ export const deleteCommand = new Command()
       }
 
       let filesPurged: fileObjectDeleted[] = [];
+      let filesPurgedFailed: fileObjectDeleted[] = [];
       if (purgeCache) {
         const purgeCachePromises = filesDeleted.map(
           async (obj: fileObjectDeleted) => {
@@ -256,13 +257,23 @@ export const deleteCommand = new Command()
               cloudflareApiKey,
               url: obj.url,
             });
-            if (purged) {
+            if (purged.success) {
               filesPurged.push({
                 url: obj.url,
                 date: obj.date,
                 key: obj.key,
                 size: obj.size,
-                deleted: purged,
+                deleted: purged.success,
+                errors: purged.errors,
+              });
+            } else {
+              filesPurgedFailed.push({
+                url: obj.url,
+                date: obj.date,
+                key: obj.key,
+                size: obj.size,
+                deleted: purged.success,
+                errors: purged.errors,
               });
             }
             const tableDeletedObject = [
@@ -276,9 +287,57 @@ export const deleteCommand = new Command()
           },
         );
 
+        let errors: boolean = false;
         spinner.start("Purging cache...");
         await Promise.all(purgeCachePromises);
-        spinner.succeed("Done!");
+        if (filesPurged.length == filesDeleted.length) {
+          spinner.succeed("Done");
+        } else if (
+          filesPurged.length < filesDeleted.length &&
+          filesPurged.length != 0
+        ) {
+          spinner.info("Partially failed");
+          errors = true;
+        } else {
+          spinner.fail("Failed");
+          errors = true;
+        }
+
+        let showErrors: boolean = false;
+        if (errors) {
+          const answer = await inquirer.prompt([
+            {
+              type: "confirm",
+              name: "showErrors",
+              message:
+                "There were errors during the cache-purge job. Show details?",
+              default: true,
+            },
+          ]);
+
+          if (answer.showErrors) {
+            showErrors = true;
+          }
+        }
+
+        if (showErrors) {
+          const purgeErrors = new Table({
+            head: ["File", "Errors"],
+            // colWidths: [60, 15],
+            style: { head: ["cyan"] },
+          });
+          filesPurgedFailed.map((filePurged: fileObjectDeleted) => {
+            if (filePurged.errors) {
+              purgeErrors.push([
+                filePurged.url,
+                filePurged.errors
+                  .map((error) => `${error.code}: ${error.message}`)
+                  .join("\n"),
+              ]);
+            }
+          });
+          console.log("\n" + purgeErrors.toString());
+        }
       }
 
       console.log(

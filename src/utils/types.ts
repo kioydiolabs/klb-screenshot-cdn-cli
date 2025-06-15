@@ -21,4 +21,5 @@ export type fileObjectDeleted = {
   date?: Date;
   key: string;
   deleted: boolean;
+  errors?: { code: number; message: string }[];
 };
