@@ -1,6 +1,6 @@
 {
   "name": "@kioydiolabs/klb-screenshot-cdn-cli",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "",
   "main": "index.js",
   "type": "module",
