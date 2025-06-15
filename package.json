@@ -8,7 +8,9 @@
     "dev": "tsx src/index.ts",
     "build": "tsc",
     "start": "node dist/src/index.js",
-    "prepublishOnly": "tsc"
+    "prepublishOnly": "tsc",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "bin": {
     "cdn": "./dist/src/index.js"
@@ -30,10 +32,14 @@
     "update-notifier": "^7.3.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.29.0",
+    "@types/eslint": "^9.6.1",
     "@types/node": "^22.14.0",
     "@types/update-notifier": "^6.0.8",
+    "eslint": "^9.29.0",
     "prettier": "^3.5.3",
     "tsx": "^4.19.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.34.0"
   }
 }
