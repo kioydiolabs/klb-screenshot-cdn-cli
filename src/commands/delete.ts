@@ -84,8 +84,8 @@ export const deleteCommand = new Command()
       });
 
       // array of all items that will be fetched
-      let filesFetched: fileObject[] = [];
-      let skippedUrls: string[] = [];
+      const filesFetched: fileObject[] = [];
+      const skippedUrls: string[] = [];
 
       // table object for cli-table3
       const table = new Table({
@@ -201,7 +201,7 @@ export const deleteCommand = new Command()
 
       const spinner = ora(chalk.green("Attempting to delete files...")).start();
 
-      let filesDeleted: fileObjectDeleted[] = [];
+      const filesDeleted: fileObjectDeleted[] = [];
       const deletedTable = new Table({
         head: ["URL", "Size", "Date uploaded", "Deleted", "Cache purged"],
         // colWidths: [60, 15],
@@ -248,8 +248,8 @@ export const deleteCommand = new Command()
         }
       }
 
-      let filesPurged: fileObjectDeleted[] = [];
-      let filesPurgedFailed: fileObjectDeleted[] = [];
+      const filesPurged: fileObjectDeleted[] = [];
+      const filesPurgedFailed: fileObjectDeleted[] = [];
       if (purgeCache) {
         const purgeCachePromises = filesDeleted.map(
           async (obj: fileObjectDeleted) => {

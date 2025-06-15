@@ -20,7 +20,7 @@ export async function getUrlsFromAllSources(
   urls: string[],
   file: string,
 ): Promise<string[]> {
-  let finalUrls: string[] = [];
+  const finalUrls: string[] = [];
 
   if (file && fs.existsSync(file)) {
     const content = fs.readFileSync(file, "utf-8");

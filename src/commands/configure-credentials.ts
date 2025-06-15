@@ -10,8 +10,7 @@
 
 import { Command } from "commander";
 import inquirer from "inquirer";
-import fs from "fs";
-import { mkdirSync, existsSync } from "fs";
+import fs, { mkdirSync, existsSync } from "fs";
 
 import { CONFIG_DIR, CONFIG_PATH } from "../config/constants.js";
 
