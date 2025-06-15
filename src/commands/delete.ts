@@ -145,7 +145,7 @@ export const deleteCommand = new Command()
 
       console.log(
         chalk.bgWhiteBright.black(
-          "Job overview/preview: The following actions will be performed:\n",
+          "Job overview: The following actions will be performed:\n",
         ),
       );
 
@@ -158,7 +158,7 @@ export const deleteCommand = new Command()
       if (skippedUrls.length >= 1) {
         console.log(
           chalk.ansi256(202)(
-            "Some URLs however don't seem to point to existing files on the bucket. These will be skipped:",
+            "Some URLs, however, don't seem to point to existing files on the bucket. These will be skipped:",
           ),
         );
         skippedUrls.forEach((url: string) => {
