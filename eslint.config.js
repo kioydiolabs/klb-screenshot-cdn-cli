@@ -90,7 +90,6 @@ export default tseslint.config(
     rules: {
       // Basic ESLint rules
       "no-unused-vars": "off", // Turn off base rule
-      "no-console": "warn",
       "no-debugger": "error",
       "prefer-const": "error",
       "no-var": "error",
