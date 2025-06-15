@@ -28,6 +28,11 @@ import { purgeCloudflareCache } from "../utils/cloudflare.js";
 import { fileObject, fileObjectDeleted } from "../utils/types.js";
 import { getUrlsFromAllSources } from "../utils/accept-urls.js";
 
+const cancelGracefully = (message?: string) => {
+  console.log(chalk.green(message ? message : "Cancelled"));
+  process.exit(0);
+};
+
 export const deleteCommand = new Command()
   .command("delete [urls...]")
   .alias("d")
@@ -83,7 +88,7 @@ export const deleteCommand = new Command()
 
       // table object for cli-table3
       const table = new Table({
-        head: ["URL", "Size", "Date uploaded"],
+        head: ["URL", "Size", "Date uploaded (Local Timezone)"],
         // colWidths: [60, 15],
         style: { head: ["cyan"] },
       });
@@ -116,7 +121,7 @@ export const deleteCommand = new Command()
           const tableFileObject = [
             fileObject.url,
             fileObject.size,
-            fileObject.date?.toString() ?? "",
+            fileObject.date?.toLocaleString() ?? "",
           ];
           table.push(tableFileObject);
         } catch (e) {
@@ -130,9 +135,10 @@ export const deleteCommand = new Command()
 
       if (filesFetched.length < 1) {
         console.log(
-          chalk.ansi256(202)(
-            "No files match the URLs you entered.\nThat could be either:\n- Because all of the files you entered have already been deleted\n- Or because all URLs are invalid",
-          ),
+          chalk.bold.ansi256(202)("No files match the URLs you entered.\n") +
+            chalk.ansi256(202)(
+              "That could be either:\n- Because all of the files you entered have already been deleted\n- Or because all URLs are invalid",
+            ),
         );
         process.exit(1);
       }
@@ -172,8 +178,7 @@ export const deleteCommand = new Command()
         ]);
 
         if (!answer.confirmDelete) {
-          console.log("Cancelled.");
-          process.exit(0);
+          cancelGracefully();
         }
       }
 
@@ -189,8 +194,7 @@ export const deleteCommand = new Command()
         ]);
 
         if (!answer.confirmDelete2) {
-          console.log("Cancelled.");
-          process.exit(0);
+          cancelGracefully();
         }
       }
 
