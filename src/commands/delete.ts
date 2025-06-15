@@ -365,6 +365,7 @@ export const deleteCommand = new Command()
         }
       }
 
+      console.log(chalk.cyanBright.bold("Bye!"));
       process.exit(0);
     },
   );
