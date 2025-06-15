@@ -11,7 +11,7 @@
 import { Command } from "commander";
 import inquirer from "inquirer";
 import { loadCredentials } from "../utils/credentials.js";
-import { purgeCloudflareCache } from "../utils/cloudflare.js";
+import { purgeCloudflareCache } from "../utils/cloudflare";
 
 export const purgeCacheCommand = new Command()
   .command("cachepurge <url>")
