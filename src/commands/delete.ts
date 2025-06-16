@@ -207,6 +207,8 @@ export const deleteCommand = new Command()
         // colWidths: [60, 15],
         style: { head: ["cyan"], border: ["white"] },
       });
+
+      let deleteErrors: boolean = false;
       const deletePromises = filesFetched.map(async (obj: fileObject) => {
         try {
           await s3.send(
@@ -224,6 +226,7 @@ export const deleteCommand = new Command()
           });
         } catch (e) {
           if (e instanceof Error) {
+            deleteErrors = true;
           }
         }
       });
@@ -321,6 +324,22 @@ export const deleteCommand = new Command()
           }
         }
 
+        if (errors) {
+          const answer = await inquirer.prompt([
+            {
+              type: "confirm",
+              name: "showErrors",
+              message:
+                "There were errors during the cache-purge job. Show details?",
+              default: true,
+            },
+          ]);
+
+          if (answer.showErrors) {
+            showErrors = true;
+          }
+        }
+
         if (showErrors) {
           const purgeErrors = new Table({
             head: ["File", "Errors"],
@@ -355,13 +374,27 @@ export const deleteCommand = new Command()
           {
             type: "confirm",
             name: "showJobResults",
-            message: "Show job results in detail?",
+            message: `${deleteErrors || filesPurged.length < filesDeleted.length ? "There were errors." : ""}Show job results in detail?`,
             default: false,
           },
         ]);
 
         if (answer.showJobResults) {
           console.log(deletedTable.toString());
+        }
+      }
+
+      if (deleteErrors || filesPurged.length < filesDeleted.length) {
+        const answer = await inquirer.prompt([
+          {
+            type: "confirm",
+            name: "checkStatus",
+            message: `Since there were errors, do you want to check Cloudflare status for incidents?`,
+            default: false,
+          },
+        ]);
+
+        if (answer.checkStatus) {
         }
       }
 
