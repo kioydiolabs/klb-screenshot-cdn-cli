@@ -28,11 +28,7 @@ import { purgeCloudflareCache } from "../utils/cloudflare.js";
 import { fileObject, fileObjectDeleted } from "../utils/types.js";
 import { getUrlsFromAllSources } from "../utils/accept-urls.js";
 import { showJobOverview } from "../utils/show-job-overview.js";
-import {
-  askToCheckForIssues,
-  CloudflareComponentsThatMayAffectCDN,
-  prettyCloudflareStatusTable,
-} from "../utils/check-cf-status.js";
+import { askToCheckForIssues } from "../utils/check-cf-status.js";
 
 const cancelGracefully = (message?: string) => {
   console.log(chalk.green(message ? message : "Cancelled"));
