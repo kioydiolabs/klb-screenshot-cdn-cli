@@ -20,6 +20,7 @@ import { configureCredentialsCommand } from "./commands/configure-credentials.js
 import { deleteCommand } from "./commands/delete.js";
 import { purgeCacheCommand } from "./commands/purge-cache.js";
 import { banner } from "./utils/banner.js";
+import { uploadCommand } from "./commands/upload.js";
 
 dotenv.config();
 
@@ -35,6 +36,7 @@ program.version(
 program.addCommand(configureCredentialsCommand);
 program.addCommand(deleteCommand);
 program.addCommand(purgeCacheCommand);
+program.addCommand(uploadCommand);
 
 // If no command is provided, display help
 if (!process.argv.slice(2).length) {

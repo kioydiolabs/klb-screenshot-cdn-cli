@@ -41,7 +41,7 @@ const cancelGracefully = (message?: string) => {
   process.exit(0);
 };
 
-export const deleteCommand = new Command()
+export const uploadCommand = new Command()
   .command("upload <file>")
   .alias("u")
   .description("Upload a file to the CDN")
