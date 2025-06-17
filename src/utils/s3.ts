@@ -8,7 +8,11 @@
  * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import fs from "fs";
 
 export async function uploadFile(
@@ -20,9 +24,44 @@ export async function uploadFile(
   },
 ) {
   try {
-    const data = await s3.send(new PutObjectCommand(uploadParams));
-    return data;
+    return await s3.send(new PutObjectCommand(uploadParams));
   } catch (err) {
     return err;
+  }
+}
+
+type checkIfFileExists = {
+  size?: number;
+  type?: string;
+  uploadedOn?: Date;
+  exists: boolean;
+  error?: Error;
+};
+export async function checkIfFileExists(
+  s3: S3Client,
+  params: {
+    Bucket: string;
+    Key: string;
+  },
+): Promise<checkIfFileExists> {
+  try {
+    const data = await s3.send(new GetObjectCommand(params));
+
+    return {
+      size: data.ContentLength,
+      type: data.ContentType,
+      uploadedOn: data.LastModified,
+      exists: true,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        exists: false,
+        error: err,
+      };
+    }
+    return {
+      exists: false,
+    };
   }
 }
