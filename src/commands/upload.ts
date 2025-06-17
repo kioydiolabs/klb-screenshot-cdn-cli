@@ -23,7 +23,6 @@ import prettyBytes from "pretty-bytes";
 import inquirer from "inquirer";
 import { showJobOverview } from "../utils/show-job-overview.js";
 import { askToCheckForIssues } from "../utils/check-cf-status.js";
-import { fileURLToPath } from "url";
 
 const cancelGracefully = (message?: string) => {
   console.log(chalk.green(message ? message : "Cancelled"));
