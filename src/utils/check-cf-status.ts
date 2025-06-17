@@ -12,7 +12,7 @@
 import Table from "cli-table3";
 import { capitalizeFirstLetter } from "./misc.js";
 import { Ora } from "ora";
-import inquirer from "inquirer/dist/esm";
+import inquirer from "inquirer";
 import chalk from "chalk";
 
 interface CloudflarePage {
