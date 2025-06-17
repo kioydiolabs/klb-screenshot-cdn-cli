@@ -28,6 +28,7 @@ import { purgeCloudflareCache } from "../utils/cloudflare.js";
 import { fileObject, fileObjectDeleted } from "../utils/types.js";
 import { getUrlsFromAllSources } from "../utils/accept-urls.js";
 import { showJobOverview } from "../utils/show-job-overview.js";
+import { getCfStatus } from "../utils/check-cf-status";
 
 const cancelGracefully = (message?: string) => {
   console.log(chalk.green(message ? message : "Cancelled"));
@@ -384,7 +385,7 @@ export const deleteCommand = new Command()
         }
       }
 
-      if (deleteErrors || filesPurged.length < filesDeleted.length) {
+      if (1 === 1) {
         const answer = await inquirer.prompt([
           {
             type: "confirm",
@@ -395,6 +396,7 @@ export const deleteCommand = new Command()
         ]);
 
         if (answer.checkStatus) {
+          console.log(await getCfStatus());
         }
       }
 
