@@ -8,18 +8,6 @@
  * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/*
- *
- * so the issue is that when you uh import stuff in js, it usually doesnt
- * add a .ts or .js like in this case:
- *
- * now the issue is that in CLIs that HAS to end in .js. not .ts, not nothing, ONLY js otherwise it just
- * breaks COMPLETELY. lol.
- *
- * lets see if uh eslint can auto fix this
- *
- * */
-
 // Define the 'delete' command
 import { Command } from "commander";
 import path from "node:path";
