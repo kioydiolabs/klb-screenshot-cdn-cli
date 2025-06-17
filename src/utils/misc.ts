@@ -44,3 +44,39 @@ export const cancelGracefully = (message?: string, bye?: boolean = true) => {
   if (bye) console.log(chalk.cyanBright.bold("\nBye!\n"));
   process.exit(0);
 };
+
+export function createWarning(
+  message: string,
+  selflog: boolean = true,
+  bold: boolean = true,
+) {
+  if (selflog) {
+    if (bold) {
+      console.log(
+        chalk.ansi256(202).bold(
+          `
+WARNING: ${message}`,
+        ),
+      );
+    } else {
+      console.log(
+        chalk.ansi256(202)(
+          `
+WARNING: ${message}`,
+        ),
+      );
+    }
+  } else {
+    if (bold) {
+      return chalk.ansi256(202).bold(
+        `
+WARNING: ${message}`,
+      );
+    } else {
+      return chalk.ansi256(202)(
+        `
+WARNING: ${message}`,
+      );
+    }
+  }
+}

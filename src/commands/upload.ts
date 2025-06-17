@@ -21,6 +21,7 @@ import {
   generateRandomID,
   getFilenameExtension,
   cancelGracefully,
+  createWarning,
 } from "../utils/misc.js";
 import ora from "ora";
 import { tryCatch } from "../utils/try-catch.js";
@@ -53,6 +54,10 @@ export const uploadCommand = new Command()
       }
 
       const filePath = path.resolve(file);
+      if (!fs.existsSync(filePath)) {
+        createWarning("File not found. Check the name again.");
+        process.exit(1);
+      }
       const fileStream = fs.createReadStream(filePath);
       const statSync = fs.statSync(filePath);
 
@@ -105,12 +110,8 @@ export const uploadCommand = new Command()
 
       let overrode: boolean = false;
       if (exists.exists) {
-        console.log(
-          chalk
-            .ansi256(202)
-            .bold(
-              "\nWARNING: The following file, with the same name, was found on the bucket:",
-            ),
+        createWarning(
+          "The following file, with the same name, was found on the bucket:",
         );
 
         const table = new Table({
