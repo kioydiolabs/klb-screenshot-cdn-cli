@@ -16,7 +16,11 @@ export function showJobOverview(inputs: {
   filesPurged?: number;
   urls?: number;
   filesUploaded?: number;
+  onlyHeader?: booleab;
 }) {
+  if (inputs.onlyHeader) {
+    return chalk.bgWhiteBright.black.bold("\n\nJob overview:\n");
+  }
   let jobOverviewString: string = "";
   jobOverviewString += chalk.bgWhiteBright.black.bold("\n\nJob overview:\n");
   if (inputs.filesUploaded) {

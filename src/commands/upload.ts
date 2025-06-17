@@ -184,9 +184,11 @@ export const uploadCommand = new Command()
       }
 
       console.log(
-        showJobOverview() +
+        showJobOverview({
+          onlyHeader: true,
+        }) +
           chalk.whiteBright(
-            `${overrode} ? "Overrode" : "Uploaded"} one file named ${key}`,
+            `${overrode ? "Overrode" : "Uploaded"} one file named ${key}`,
           ),
       );
       console.log(`The URL of the file is now: ${constructFileUrl(key)}\n\n`);
