@@ -103,6 +103,7 @@ export const uploadCommand = new Command()
         Key: key,
       });
 
+      let overrode: boolean = false;
       if (exists.exists) {
         console.log(
           chalk
@@ -146,6 +147,8 @@ export const uploadCommand = new Command()
 
         if (!override.override) {
           cancelGracefully();
+        } else {
+          overrode = true;
         }
       }
 
@@ -181,9 +184,10 @@ export const uploadCommand = new Command()
       }
 
       console.log(
-        showJobOverview({
-          filesUploaded: 1,
-        }),
+        showJobOverview() +
+          chalk.whiteBright(
+            `${overrode} ? "Overrode" : "Uploaded"} one file named ${key}`,
+          ),
       );
       console.log(`The URL of the file is now: ${constructFileUrl(key)}\n\n`);
 
