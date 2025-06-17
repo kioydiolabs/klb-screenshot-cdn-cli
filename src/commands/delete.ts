@@ -29,11 +29,7 @@ import { fileObject, fileObjectDeleted } from "../utils/types.js";
 import { getUrlsFromAllSources } from "../utils/accept-urls.js";
 import { showJobOverview } from "../utils/show-job-overview.js";
 import { askToCheckForIssues } from "../utils/check-cf-status.js";
-
-const cancelGracefully = (message?: string) => {
-  console.log(chalk.green(message ? message : "Cancelled"));
-  process.exit(0);
-};
+import { cancelGracefully } from "../utils/misc.js";
 
 export const deleteCommand = new Command()
   .command("delete [urls...]")
