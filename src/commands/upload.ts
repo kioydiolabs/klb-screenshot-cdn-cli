@@ -23,6 +23,7 @@ import prettyBytes from "pretty-bytes";
 import inquirer from "inquirer";
 import { showJobOverview } from "../utils/show-job-overview.js";
 import { askToCheckForIssues } from "../utils/check-cf-status.js";
+import { fileURLToPath } from "url";
 
 const cancelGracefully = (message?: string) => {
   console.log(chalk.green(message ? message : "Cancelled"));
@@ -51,7 +52,7 @@ export const uploadCommand = new Command()
         console.log("no file smh");
       }
 
-      const filePath = path.join(__dirname, file);
+      const filePath = path.resolve(file);
       const fileStream = fs.createReadStream(filePath);
       const statSync = fs.statSync(filePath);
 
