@@ -78,6 +78,12 @@ export const uploadCommand = new Command()
 
       console.log(`The file ${filePath} will be uploaded:`);
       console.log(`- It is ${prettyBytes(statSync.size)} large.`);
+      console.log(
+        "- Its file type is: " +
+          chalk.bold(
+            `"${fileType?.mime ? fileType.mime : "undefined"} ${fileType?.ext ? `(.${fileType?.ext})` : ""}"`,
+          ),
+      );
       console.log(`- Once uploaded, its name on the bucket will be: ${key}\n`);
 
       if (!options.force) {
