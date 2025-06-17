@@ -9,7 +9,8 @@ on:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on:
+      group: homelab
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
