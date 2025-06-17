@@ -9,6 +9,8 @@
  */
 
 // TypeScript types for Cloudflare Incidents API (thanks claude!)
+import Table from "cli-table3";
+
 interface CloudflarePage {
   id: string;
   name: string;
@@ -91,7 +93,7 @@ type ComponentStatus =
   | "under_maintenance"
   | "major_outage";
 
-const componentsToCheck: string[] = [
+export const CloudflareComponentsThatMayAffectCDN: string[] = [
   "5wnz34mhfhrk",
   "fbvx0hxhhdj0",
   "3q1jnbdbn845",
@@ -99,7 +101,7 @@ const componentsToCheck: string[] = [
   "m1cm5tqpkqtm",
 ];
 
-export async function getCfStatus() {
+export async function getCfStatus(idsToCheck: string[]) {
   const response = await fetch(
     "https://www.cloudflarestatus.com/api/v2/incidents/unresolved.json",
   );
@@ -108,7 +110,7 @@ export async function getCfStatus() {
   return json.incidents
     .filter((incident) =>
       incident.components.some((component) =>
-        componentsToCheck.includes(component.id),
+        idsToCheck.includes(component.id),
       ),
     )
     .map((incident) => ({
@@ -119,4 +121,24 @@ export async function getCfStatus() {
       started_at: incident.started_at,
       affected_components: incident.components.map((c) => c.name),
     }));
+}
+
+export async function prettyCloudflareStatusTable(componentsToCheck: string[]) {
+  const incidents = await getCfStatus(componentsToCheck);
+
+  const incidentTable = new Table({
+    head: ["Incident Name", "Status", "Impact", "Since", "Components Affected"],
+    // colWidths: [60, 15],
+    style: { head: ["cyan"], border: ["white"] },
+  });
+
+  incidents.map((incident) => {
+    incidentTable.push([
+      incident.name,
+      incident.status,
+      incident.impact,
+      incident.started_at,
+      incident.affected_components.map((component) => component).join("\n"),
+    ]);
+  });
 }
