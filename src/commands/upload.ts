@@ -15,26 +15,27 @@ import chalk from "chalk";
 import { loadCredentials } from "../utils/credentials.js";
 import fs from "fs";
 import { S3Client } from "@aws-sdk/client-s3";
-import { uploadFile } from "../utils/s3.js";
-import { generateRandomID } from "../utils/misc.js";
+import { checkIfFileExists, uploadFile } from "../utils/s3.js";
+import {
+  constructFileUrl,
+  generateRandomID,
+  getFilenameExtension,
+  cancelGracefully,
+} from "../utils/misc.js";
 import ora from "ora";
 import { tryCatch } from "../utils/try-catch.js";
 import prettyBytes from "pretty-bytes";
 import inquirer from "inquirer";
 import { showJobOverview } from "../utils/show-job-overview.js";
 import { askToCheckForIssues } from "../utils/check-cf-status.js";
-
-const cancelGracefully = (message?: string) => {
-  console.log(chalk.green(message ? message : "Cancelled"));
-  process.exit(0);
-};
+import Table from "cli-table3";
 
 export const uploadCommand = new Command()
   .command("upload <file>")
   .alias("u")
   .description("Upload a file to the CDN")
   .option(
-    "--path <name>",
+    "--name <name>",
     "Custom path, including name. For example `myfolder/test/file.png`",
   )
   .option("--random", "Will give the filename a random name.")
@@ -42,9 +43,9 @@ export const uploadCommand = new Command()
   .action(
     async (
       file: string,
-      options: { path?: string; random: boolean; force: boolean },
+      options: { name?: string; random: boolean; force: boolean },
     ) => {
-      const { endpoint, accessKeyId, secretAccessKey, bucketName, domain } =
+      const { endpoint, accessKeyId, secretAccessKey, bucketName } =
         loadCredentials();
 
       if (!file) {
@@ -56,10 +57,10 @@ export const uploadCommand = new Command()
       const statSync = fs.statSync(filePath);
 
       let key: string = file;
-      if (options.path) {
-        key = options.path;
+      if (options.name) {
+        key = options.name;
       } else if (options.random) {
-        key = generateRandomID(10);
+        key = generateRandomID(10) + "." + getFilenameExtension(file);
       }
 
       console.log(
@@ -68,9 +69,9 @@ export const uploadCommand = new Command()
         ),
       );
 
-      console.log(`The file ${filePath} will be uploaded:\n`);
+      console.log(`The file ${filePath} will be uploaded:`);
       console.log(`- It is ${prettyBytes(statSync.size)} large.`);
-      console.log(`- Once uploaded, its name on the bucket will be: ${key}`);
+      console.log(`- Once uploaded, its name on the bucket will be: ${key}\n`);
 
       if (!options.force) {
         const answer = await inquirer.prompt([
@@ -96,6 +97,57 @@ export const uploadCommand = new Command()
         },
         region: "auto",
       });
+
+      const exists = await checkIfFileExists(s3, {
+        Bucket: bucketName,
+        Key: key,
+      });
+
+      if (exists.exists) {
+        console.log(
+          chalk
+            .ansi256(202)
+            .bold(
+              "\nWARNING: The following file, with the same name, was found on the bucket:",
+            ),
+        );
+
+        const table = new Table({
+          head: ["URL", "Name", "Size", "Date uploaded (Local Timezone)"],
+          // colWidths: [60, 15],
+          style: { head: ["cyan"], border: ["white"] },
+        });
+        table.push([
+          constructFileUrl(key),
+          key,
+          exists.size ? prettyBytes(exists.size) : "-",
+          exists.uploadedOn?.toLocaleString(),
+        ]);
+        console.log(table.toString());
+
+        console.log(
+          chalk
+            .ansi256(202)
+            .bold(
+              "\nIf you want to upload the file with a different name, you can use `--name` to change it,\n" +
+                "or `--random` to generate a random one.\n",
+            ),
+        );
+
+        const override = await inquirer.prompt([
+          {
+            type: "confirm",
+            name: "override",
+            message:
+              "Override the old file? If you proceed the old file will be deleted permanently.",
+            default: false,
+          },
+        ]);
+
+        if (!override.override) {
+          cancelGracefully();
+        }
+      }
 
       const spinner = ora(chalk.green("Uploading file...")).start();
 
@@ -128,14 +180,12 @@ export const uploadCommand = new Command()
         spinner.succeed("Done");
       }
 
-      const urlOfUploadedFile: string = `https://${domain}/${key}`;
-
       console.log(
         showJobOverview({
           filesUploaded: 1,
         }),
       );
-      console.log(`The URL of the file is now: ${urlOfUploadedFile}\n\n`);
+      console.log(`The URL of the file is now: ${constructFileUrl(key)}\n\n`);
 
       console.log(chalk.cyanBright.bold("Bye!\n"));
       process.exit(0);
