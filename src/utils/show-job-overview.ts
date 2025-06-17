@@ -11,10 +11,11 @@
 import chalk from "chalk";
 
 export function showJobOverview(inputs: {
-  filesFetched: number;
-  filesDeleted: number;
-  filesPurged: number;
+  filesFetched?: number;
+  filesDeleted?: number;
+  filesPurged?: number;
   urls: number;
+  filesUploaded?: number;
 }) {
   let jobOverviewString: string = "";
   jobOverviewString += chalk.bgWhiteBright.black.bold("\n\nJob overview:\n");
