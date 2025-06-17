@@ -388,7 +388,7 @@ export const deleteCommand = new Command()
         }
       }
 
-      if (1 === 1) {
+      if (deleteErrors || filesPurged.length < filesDeleted.length) {
         const answer = await inquirer.prompt([
           {
             type: "confirm",
