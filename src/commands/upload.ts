@@ -10,6 +10,7 @@
 
 // Define the 'delete' command
 import { Command } from "commander";
+import { fileTypeFromFile } from "file-type";
 import path from "node:path";
 import chalk from "chalk";
 import { loadCredentials } from "../utils/credentials.js";
@@ -58,6 +59,7 @@ export const uploadCommand = new Command()
         createWarning("File not found. Check the name again.");
         process.exit(1);
       }
+      const fileType = await fileTypeFromFile(filePath);
       const fileStream = fs.createReadStream(filePath);
       const statSync = fs.statSync(filePath);
 
@@ -160,6 +162,7 @@ export const uploadCommand = new Command()
           Bucket: bucketName,
           Key: key,
           Body: fileStream,
+          ContentType: fileType?.mime,
         }),
       );
 
