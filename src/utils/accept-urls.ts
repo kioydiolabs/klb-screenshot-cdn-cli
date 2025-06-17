@@ -10,8 +10,8 @@
 
 import readline from "readline";
 import fs from "fs";
-import { loadCredentials } from "./credentials";
-import { constructFileUrl } from "./misc";
+import { loadCredentials } from "./credentials.js";
+import { constructFileUrl } from "./misc.js";
 
 const { domain } = loadCredentials();
 
