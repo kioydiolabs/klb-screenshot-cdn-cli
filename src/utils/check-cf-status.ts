@@ -11,6 +11,9 @@
 // TypeScript types for Cloudflare Incidents API (thanks claude!)
 import Table from "cli-table3";
 import { capitalizeFirstLetter } from "./misc.js";
+import { Ora } from "ora";
+import inquirer from "inquirer/dist/esm";
+import chalk from "chalk";
 
 interface CloudflarePage {
   id: string;
@@ -148,4 +151,41 @@ export async function prettyCloudflareStatusTable(componentsToCheck: string[]) {
     incidentTable: incidentTable,
     incidentTableString: incidentTable.toString(),
   };
+}
+
+export async function askToCheckForIssues(spinner: Ora) {
+  const askCheckCloudflareStatus = await inquirer.prompt([
+    {
+      type: "confirm",
+      name: "checkStatus",
+      message: `Since there were errors, do you want to check Cloudflare status for incidents?`,
+      default: true,
+    },
+  ]);
+
+  if (askCheckCloudflareStatus.checkStatus) {
+    spinner.start("Querying the Cloudflare status API");
+    const table = await prettyCloudflareStatusTable(
+      CloudflareComponentsThatMayAffectCDN,
+    );
+    spinner.succeed();
+    if (table.impactingComponents) {
+      console.log(
+        chalk.ansi256(202)(
+          "\n\nThe following active Cloudflare incidents may be affecting this job:",
+        ),
+      );
+      console.log(table.incidentTableString);
+      console.log("\n\n");
+    } else {
+      console.log(
+        chalk.greenBright(
+          "\n\nIt looks like the components required for the CDN are operational.",
+        ),
+      );
+      console.log(
+        "Please check the job again, since the errors are not on Cloudflare's side.\n\n",
+      );
+    }
+  }
 }
