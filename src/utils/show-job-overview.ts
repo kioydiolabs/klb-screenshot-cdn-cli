@@ -14,7 +14,7 @@ export function showJobOverview(inputs: {
   filesFetched?: number;
   filesDeleted?: number;
   filesPurged?: number;
-  urls: number;
+  urls?: number;
   filesUploaded?: number;
 }) {
   let jobOverviewString: string = "";
