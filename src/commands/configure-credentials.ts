@@ -92,7 +92,7 @@ export const configureCredentialsCommand = new Command()
         type: "input",
         name: "cloudflareApiKey",
         message:
-          "Cloudflare API Token (must have the Purce Cache permission for the specific zone):",
+          "Cloudflare API Token (must have the Purge Cache permission for the specific zone):",
         default: creds.cloudflareApiKey,
       },
       {
