@@ -128,12 +128,6 @@ export const uploadCommand = new Command()
         spinner.succeed("Done");
       }
 
-      console.log(
-        showJobOverview({
-          filesUploaded: 1,
-        }),
-      );
-
       const urlOfUploadedFile: string = `https://${domain}/${key}`;
 
       console.log(
