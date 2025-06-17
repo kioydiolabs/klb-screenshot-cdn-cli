@@ -21,6 +21,7 @@ export async function uploadFile(
     Bucket: string;
     Key: string;
     Body: fs.ReadStream;
+    ContentType?: string;
   },
 ) {
   try {
