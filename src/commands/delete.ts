@@ -28,6 +28,10 @@ import { purgeCloudflareCache } from "../utils/cloudflare.js";
 import { fileObject, fileObjectDeleted } from "../utils/types.js";
 import { getUrlsFromAllSources } from "../utils/accept-urls.js";
 import { showJobOverview } from "../utils/show-job-overview.js";
+import {
+  CloudflareComponentsThatMayAffectCDN,
+  prettyCloudflareStatusTable,
+} from "../utils/check-cf-status.js";
 
 const cancelGracefully = (message?: string) => {
   console.log(chalk.green(message ? message : "Cancelled"));
@@ -207,6 +211,8 @@ export const deleteCommand = new Command()
         // colWidths: [60, 15],
         style: { head: ["cyan"], border: ["white"] },
       });
+
+      let deleteErrors: boolean = false;
       const deletePromises = filesFetched.map(async (obj: fileObject) => {
         try {
           await s3.send(
@@ -224,6 +230,7 @@ export const deleteCommand = new Command()
           });
         } catch (e) {
           if (e instanceof Error) {
+            deleteErrors = true;
           }
         }
       });
@@ -321,6 +328,22 @@ export const deleteCommand = new Command()
           }
         }
 
+        if (errors) {
+          const answer = await inquirer.prompt([
+            {
+              type: "confirm",
+              name: "showErrors",
+              message:
+                "There were errors during the cache-purge job. Show details?",
+              default: true,
+            },
+          ]);
+
+          if (answer.showErrors) {
+            showErrors = true;
+          }
+        }
+
         if (showErrors) {
           const purgeErrors = new Table({
             head: ["File", "Errors"],
@@ -355,7 +378,7 @@ export const deleteCommand = new Command()
           {
             type: "confirm",
             name: "showJobResults",
-            message: "Show job results in detail?",
+            message: `${deleteErrors || filesPurged.length < filesDeleted.length ? "There were errors." : ""}Show job results in detail?`,
             default: false,
           },
         ]);
@@ -365,7 +388,44 @@ export const deleteCommand = new Command()
         }
       }
 
-      console.log(chalk.cyanBright.bold("Bye!"));
+      if (1 === 1) {
+        const answer = await inquirer.prompt([
+          {
+            type: "confirm",
+            name: "checkStatus",
+            message: `Since there were errors, do you want to check Cloudflare status for incidents?`,
+            default: false,
+          },
+        ]);
+
+        if (answer.checkStatus) {
+          spinner.start("Querying the Cloudflare status API");
+          const table = await prettyCloudflareStatusTable(
+            CloudflareComponentsThatMayAffectCDN,
+          );
+          spinner.succeed();
+          if (table.impactingComponents) {
+            console.log(
+              chalk.ansi256(202)(
+                "\n\nThe following active Cloudflare incidents may be affecting this job:",
+              ),
+            );
+            console.log(table.incidentTableString);
+            console.log("\n\n");
+          } else {
+            console.log(
+              chalk.greenBright(
+                "\n\nIt looks like the components required for the CDN are operational.",
+              ),
+            );
+            console.log(
+              "Please check the job again, since the errors are not on Cloudflare's side.\n\n",
+            );
+          }
+        }
+      }
+
+      console.log(chalk.cyanBright.bold("Bye!\n"));
       process.exit(0);
     },
   );
