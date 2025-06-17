@@ -108,7 +108,7 @@ export const uploadCommand = new Command()
         Key: key,
       });
 
-      let overrode: boolean = false;
+      let overwrote: boolean = false;
       if (exists.exists) {
         createWarning(
           "The following file, with the same name, was found on the bucket:",
@@ -136,20 +136,20 @@ export const uploadCommand = new Command()
             ),
         );
 
-        const override = await inquirer.prompt([
+        const overwrite = await inquirer.prompt([
           {
             type: "confirm",
-            name: "override",
+            name: "overwrite",
             message:
-              "Override the old file? If you proceed the old file will be deleted permanently.",
+              "Overwrite the old file? If you proceed the old file will be deleted permanently.",
             default: false,
           },
         ]);
 
-        if (!override.override) {
+        if (!overwrite.overwrite) {
           cancelGracefully();
         } else {
-          overrode = true;
+          overwrote = true;
         }
       }
 
@@ -189,7 +189,7 @@ export const uploadCommand = new Command()
           onlyHeader: true,
         }) +
           chalk.whiteBright(
-            `${overrode ? "Overrode" : "Uploaded"} one file named ${key}`,
+            `${overwrote ? "Overwrote" : "Uploaded"} one file named ${key}`,
           ),
       );
       console.log(`The URL of the file is now: ${constructFileUrl(key)}\n\n`);
