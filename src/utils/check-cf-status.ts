@@ -10,6 +10,7 @@
 
 // TypeScript types for Cloudflare Incidents API (thanks claude!)
 import Table from "cli-table3";
+import { capitalizeFirstLetter } from "./misc";
 
 interface CloudflarePage {
   id: string;
@@ -98,7 +99,7 @@ export const CloudflareComponentsThatMayAffectCDN: string[] = [
   "fbvx0hxhhdj0",
   "3q1jnbdbn845",
   "hb7g5sq2zz0h",
-  "m1cm5tqpkqtm",
+  // "m1cm5tqpkqtm", magic firewall for testing
 ];
 
 export async function getCfStatus(idsToCheck: string[]) {
@@ -135,10 +136,16 @@ export async function prettyCloudflareStatusTable(componentsToCheck: string[]) {
   incidents.map((incident) => {
     incidentTable.push([
       incident.name,
-      incident.status,
-      incident.impact,
-      incident.started_at,
+      capitalizeFirstLetter(incident.status),
+      capitalizeFirstLetter(incident.impact),
+      new Date(incident.started_at).toLocaleString(),
       incident.affected_components.map((component) => component).join("\n"),
     ]);
   });
+
+  return {
+    impactingComponents: incidents.length >= 1,
+    incidentTable: incidentTable,
+    incidentTableString: incidentTable.toString(),
+  };
 }

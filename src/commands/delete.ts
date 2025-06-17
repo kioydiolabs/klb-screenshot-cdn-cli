@@ -28,7 +28,11 @@ import { purgeCloudflareCache } from "../utils/cloudflare.js";
 import { fileObject, fileObjectDeleted } from "../utils/types.js";
 import { getUrlsFromAllSources } from "../utils/accept-urls.js";
 import { showJobOverview } from "../utils/show-job-overview.js";
-import { getCfStatus } from "../utils/check-cf-status";
+import {
+  CloudflareComponentsThatMayAffectCDN,
+  getCfStatus,
+  prettyCloudflareStatusTable,
+} from "../utils/check-cf-status";
 
 const cancelGracefully = (message?: string) => {
   console.log(chalk.green(message ? message : "Cancelled"));
@@ -396,11 +400,33 @@ export const deleteCommand = new Command()
         ]);
 
         if (answer.checkStatus) {
-          console.log(await getCfStatus());
+          spinner.start("Querying the Cloudflare status API");
+          const table = await prettyCloudflareStatusTable(
+            CloudflareComponentsThatMayAffectCDN,
+          );
+          spinner.succeed();
+          if (table.impactingComponents) {
+            console.log(
+              chalk.ansi256(202)(
+                "\n\nThe following active Cloudflare incidents may be affecting this job:",
+              ),
+            );
+            console.log(table.incidentTableString);
+            console.log("\n\n");
+          } else {
+            console.log(
+              chalk.greenBright(
+                "\n\nIt looks like the components required for the CDN are operational.",
+              ),
+            );
+            console.log(
+              "Please check the job again, since the errors are not on Cloudflare's side.\n\n",
+            );
+          }
         }
       }
 
-      console.log(chalk.cyanBright.bold("Bye!"));
+      console.log(chalk.cyanBright.bold("Bye!\n"));
       process.exit(0);
     },
   );
