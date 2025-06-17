@@ -13,3 +13,13 @@ export function capitalizeFirstLetter(inputString: string) {
     String(inputString).charAt(0).toUpperCase() + String(inputString).slice(1)
   );
 }
+
+export function generateRandomID(length: number) {
+  let result = "";
+  const characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+}
