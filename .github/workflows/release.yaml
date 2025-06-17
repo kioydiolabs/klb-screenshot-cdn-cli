@@ -37,14 +37,11 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # Option A: Let GitHub auto-generate release notes based on merged PRs:
-      - name: Create GitHub Release (auto notes)
-        uses: actions/create-release@v1
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: ${{ github.ref_name }}
-          generate_release_notes: true
-          draft: false
-          prerelease: false
+      - name: Create a Github Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          git fetch --prune --unshallow || true
+          # Optionally: gh release delete "$TAG" --yes  # if rerunning
+          gh release create "$TAG" --generate-notes
