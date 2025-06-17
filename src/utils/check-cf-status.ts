@@ -10,7 +10,7 @@
 
 // TypeScript types for Cloudflare Incidents API (thanks claude!)
 import Table from "cli-table3";
-import { capitalizeFirstLetter } from "./misc";
+import { capitalizeFirstLetter } from "./misc.js";
 
 interface CloudflarePage {
   id: string;

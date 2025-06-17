@@ -30,9 +30,8 @@ import { getUrlsFromAllSources } from "../utils/accept-urls.js";
 import { showJobOverview } from "../utils/show-job-overview.js";
 import {
   CloudflareComponentsThatMayAffectCDN,
-  getCfStatus,
   prettyCloudflareStatusTable,
-} from "../utils/check-cf-status";
+} from "../utils/check-cf-status.js";
 
 const cancelGracefully = (message?: string) => {
   console.log(chalk.green(message ? message : "Cancelled"));
