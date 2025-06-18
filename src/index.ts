@@ -21,6 +21,7 @@ import { deleteCommand } from "./commands/delete.js";
 import { purgeCacheCommand } from "./commands/purge-cache.js";
 import { banner } from "./utils/banner.js";
 import { uploadCommand } from "./commands/upload.js";
+import { getFileInfo } from "./commands/info.js";
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ program.addCommand(configureCredentialsCommand);
 program.addCommand(deleteCommand);
 program.addCommand(purgeCacheCommand);
 program.addCommand(uploadCommand);
+program.addCommand(getFileInfo);
 
 // If no command is provided, display help
 if (!process.argv.slice(2).length) {

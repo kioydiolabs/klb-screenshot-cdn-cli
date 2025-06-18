@@ -56,10 +56,7 @@ export async function checkIfFileExists(
     };
   } catch (err) {
     if (err instanceof Error) {
-      return {
-        exists: false,
-        error: err,
-      };
+      throw err;
     }
     return {
       exists: false,
