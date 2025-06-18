@@ -22,7 +22,7 @@ import { askToCheckForIssues } from "../utils/check-cf-status.js";
 import Table from "cli-table3";
 import { getUrlsFromAllSources } from "../utils/accept-urls.js";
 
-export const checkFileCommand = new Command()
+export const getFileInfo = new Command()
   .command("info [urls...]")
   .alias("i")
   .description("Get information about one or more files")
