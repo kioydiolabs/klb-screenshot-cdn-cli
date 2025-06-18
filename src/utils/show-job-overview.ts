@@ -11,36 +11,54 @@
 import chalk from "chalk";
 
 export function showJobOverview(inputs: {
-  filesFetched: number;
-  filesDeleted: number;
-  filesPurged: number;
-  urls: number;
+  filesFetched?: number;
+  filesDeleted?: number;
+  filesPurged?: number;
+  urls?: number;
+  filesUploaded?: number;
+  onlyHeader?: booleab;
 }) {
+  if (inputs.onlyHeader) {
+    return chalk.bgWhiteBright.black.bold("\n\nJob overview:\n");
+  }
   let jobOverviewString: string = "";
   jobOverviewString += chalk.bgWhiteBright.black.bold("\n\nJob overview:\n");
-  jobOverviewString += chalk.whiteBright(
-    `URLs Provided by user: ${inputs.urls}\n`,
-  );
-  jobOverviewString += chalk.whiteBright(
-    `Files found: ${inputs.filesFetched}\n`,
-  );
-  if (inputs.filesDeleted == inputs.filesFetched) {
+  if (inputs.filesUploaded) {
     jobOverviewString += chalk.whiteBright(
-      `Files deleted successfully: ${inputs.filesDeleted}/${inputs.filesFetched}\n`,
-    );
-  } else {
-    jobOverviewString += chalk.redBright(
-      `Files deleted successfully: ${inputs.filesDeleted}/${inputs.filesFetched}\n`,
+      `Files uploaded by user: ${inputs.filesUploaded}`,
     );
   }
-  if (inputs.filesPurged == inputs.filesDeleted) {
+  if (inputs.urls) {
     jobOverviewString += chalk.whiteBright(
-      `Files purged from cache: ${inputs.filesPurged}/${inputs.filesDeleted}\n\n`,
+      `URLs Provided by user: ${inputs.urls}\n`,
     );
-  } else {
-    jobOverviewString += chalk.redBright(
-      `Files purged from cache: ${inputs.filesPurged}/${inputs.filesDeleted}\n\n`,
+  }
+  if (inputs.filesFetched) {
+    jobOverviewString += chalk.whiteBright(
+      `Files found: ${inputs.filesFetched}\n`,
     );
+  }
+  if (inputs.filesDeleted && inputs.filesFetched) {
+    if (inputs.filesDeleted == inputs.filesFetched) {
+      jobOverviewString += chalk.whiteBright(
+        `Files deleted successfully: ${inputs.filesDeleted}/${inputs.filesFetched}\n`,
+      );
+    } else {
+      jobOverviewString += chalk.redBright(
+        `Files deleted successfully: ${inputs.filesDeleted}/${inputs.filesFetched}\n`,
+      );
+    }
+  }
+  if (inputs.filesDeleted && inputs.filesFetched) {
+    if (inputs.filesPurged == inputs.filesDeleted) {
+      jobOverviewString += chalk.whiteBright(
+        `Files purged from cache: ${inputs.filesPurged}/${inputs.filesDeleted}\n\n`,
+      );
+    } else {
+      jobOverviewString += chalk.redBright(
+        `Files purged from cache: ${inputs.filesPurged}/${inputs.filesDeleted}\n\n`,
+      );
+    }
   }
 
   return jobOverviewString;

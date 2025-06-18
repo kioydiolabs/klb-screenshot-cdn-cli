@@ -28,15 +28,8 @@ import { purgeCloudflareCache } from "../utils/cloudflare.js";
 import { fileObject, fileObjectDeleted } from "../utils/types.js";
 import { getUrlsFromAllSources } from "../utils/accept-urls.js";
 import { showJobOverview } from "../utils/show-job-overview.js";
-import {
-  CloudflareComponentsThatMayAffectCDN,
-  prettyCloudflareStatusTable,
-} from "../utils/check-cf-status.js";
-
-const cancelGracefully = (message?: string) => {
-  console.log(chalk.green(message ? message : "Cancelled"));
-  process.exit(0);
-};
+import { askToCheckForIssues } from "../utils/check-cf-status.js";
+import { cancelGracefully } from "../utils/misc.js";
 
 export const deleteCommand = new Command()
   .command("delete [urls...]")
@@ -389,40 +382,7 @@ export const deleteCommand = new Command()
       }
 
       if (deleteErrors || filesPurged.length < filesDeleted.length) {
-        const answer = await inquirer.prompt([
-          {
-            type: "confirm",
-            name: "checkStatus",
-            message: `Since there were errors, do you want to check Cloudflare status for incidents?`,
-            default: false,
-          },
-        ]);
-
-        if (answer.checkStatus) {
-          spinner.start("Querying the Cloudflare status API");
-          const table = await prettyCloudflareStatusTable(
-            CloudflareComponentsThatMayAffectCDN,
-          );
-          spinner.succeed();
-          if (table.impactingComponents) {
-            console.log(
-              chalk.ansi256(202)(
-                "\n\nThe following active Cloudflare incidents may be affecting this job:",
-              ),
-            );
-            console.log(table.incidentTableString);
-            console.log("\n\n");
-          } else {
-            console.log(
-              chalk.greenBright(
-                "\n\nIt looks like the components required for the CDN are operational.",
-              ),
-            );
-            console.log(
-              "Please check the job again, since the errors are not on Cloudflare's side.\n\n",
-            );
-          }
-        }
+        await askToCheckForIssues(spinner);
       }
 
       console.log(chalk.cyanBright.bold("Bye!\n"));

@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /*
  * Copyright 2025 KioydioLabs
  *
@@ -10,39 +8,32 @@
  * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { program } from "commander";
-import dotenv from "dotenv";
-import updateNotifier from "update-notifier";
-import packageJson from "../package.json" with { type: "json" };
+/*
+Credit to Theo (@t3dotgg)
+https://gist.github.com/t3dotgg/a486c4ae66d32bf17c09c73609dacc5b
+ */
 
-// command imports
-import { configureCredentialsCommand } from "./commands/configure-credentials.js";
-import { deleteCommand } from "./commands/delete.js";
-import { purgeCacheCommand } from "./commands/purge-cache.js";
-import { banner } from "./utils/banner.js";
-import { uploadCommand } from "./commands/upload.js";
+// Types for the result object with discriminated union
+type Success<T> = {
+  data: T;
+  error: null;
+};
 
-dotenv.config();
+type Failure<E> = {
+  data: null;
+  error: E;
+};
 
-const notifier = updateNotifier({ pkg: packageJson, updateCheckInterval: 0 });
-notifier.notify({ isGlobal: true, defer: false });
+type Result<T, E = Error> = Success<T> | Failure<E>;
 
-program.version(
-  packageJson.version,
-  "-v, --version",
-  "Output the current version",
-);
-
-program.addCommand(configureCredentialsCommand);
-program.addCommand(deleteCommand);
-program.addCommand(purgeCacheCommand);
-program.addCommand(uploadCommand);
-
-// If no command is provided, display help
-if (!process.argv.slice(2).length) {
-  banner();
-  program.outputHelp();
-  process.exit(0);
+// Main wrapper function
+export async function tryCatch<T, E = Error>(
+  promise: Promise<T>,
+): Promise<Result<T, E>> {
+  try {
+    const data = await promise;
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error: error as E };
+  }
 }
-
-program.parse(process.argv);

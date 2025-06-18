@@ -10,12 +10,25 @@
 
 import readline from "readline";
 import fs from "fs";
+import { loadCredentials } from "./credentials.js";
+import { constructFileUrl } from "./misc.js";
+
+const { domain } = loadCredentials();
 
 /* This is the code that accepts the actual input from either:
 URLs just pasted directly into the command, separated with spaces,
 or stdin input from piping something into the command,
 or even a --file that uses a txt with a url on each line
  */
+
+export function constructUrlIfStringIsKey(input: string) {
+  if (input.includes(domain)) {
+    return input;
+  } else {
+    return constructFileUrl(input);
+  }
+}
+
 export async function getUrlsFromAllSources(
   urls: string[],
   file: string,
@@ -27,13 +40,14 @@ export async function getUrlsFromAllSources(
     const lines = content
       .split("\n")
       .map((line) => line.trim())
-      .filter((line) => line.length > 0);
+      .filter((line) => line.length > 0)
+      .map((line) => constructUrlIfStringIsKey(line));
     urls.push(...lines);
     return lines;
   }
 
   for (const input of urls) {
-    finalUrls.push(input);
+    finalUrls.push(constructUrlIfStringIsKey(input));
   }
 
   // If input is being piped via stdin, grab that too
@@ -44,7 +58,7 @@ export async function getUrlsFromAllSources(
     });
 
     for await (const line of rl) {
-      const trimmed = line.trim();
+      const trimmed = constructUrlIfStringIsKey(line.trim());
       if (trimmed.length > 0) {
         finalUrls.push(trimmed);
       }

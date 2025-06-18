@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /*
  * Copyright 2025 KioydioLabs
  *
@@ -10,39 +8,61 @@
  * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { program } from "commander";
-import dotenv from "dotenv";
-import updateNotifier from "update-notifier";
-import packageJson from "../package.json" with { type: "json" };
+import {
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
+import fs from "fs";
 
-// command imports
-import { configureCredentialsCommand } from "./commands/configure-credentials.js";
-import { deleteCommand } from "./commands/delete.js";
-import { purgeCacheCommand } from "./commands/purge-cache.js";
-import { banner } from "./utils/banner.js";
-import { uploadCommand } from "./commands/upload.js";
-
-dotenv.config();
-
-const notifier = updateNotifier({ pkg: packageJson, updateCheckInterval: 0 });
-notifier.notify({ isGlobal: true, defer: false });
-
-program.version(
-  packageJson.version,
-  "-v, --version",
-  "Output the current version",
-);
-
-program.addCommand(configureCredentialsCommand);
-program.addCommand(deleteCommand);
-program.addCommand(purgeCacheCommand);
-program.addCommand(uploadCommand);
-
-// If no command is provided, display help
-if (!process.argv.slice(2).length) {
-  banner();
-  program.outputHelp();
-  process.exit(0);
+export async function uploadFile(
+  s3: S3Client,
+  uploadParams: {
+    Bucket: string;
+    Key: string;
+    Body: fs.ReadStream;
+    ContentType?: string;
+  },
+) {
+  try {
+    return await s3.send(new PutObjectCommand(uploadParams));
+  } catch (err) {
+    return err;
+  }
 }
 
-program.parse(process.argv);
+type checkIfFileExists = {
+  size?: number;
+  type?: string;
+  uploadedOn?: Date;
+  exists: boolean;
+  error?: Error;
+};
+export async function checkIfFileExists(
+  s3: S3Client,
+  params: {
+    Bucket: string;
+    Key: string;
+  },
+): Promise<checkIfFileExists> {
+  try {
+    const data = await s3.send(new GetObjectCommand(params));
+
+    return {
+      size: data.ContentLength,
+      type: data.ContentType,
+      uploadedOn: data.LastModified,
+      exists: true,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        exists: false,
+        error: err,
+      };
+    }
+    return {
+      exists: false,
+    };
+  }
+}
