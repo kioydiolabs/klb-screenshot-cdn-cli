@@ -20,7 +20,10 @@ import { tryCatch } from "../utils/try-catch.js";
 import prettyBytes from "pretty-bytes";
 import { askToCheckForIssues } from "../utils/check-cf-status.js";
 import Table from "cli-table3";
-import { getUrlsFromAllSources } from "../utils/accept-urls.js";
+import {
+  extractKeyFromURL,
+  getUrlsFromAllSources,
+} from "../utils/accept-urls.js";
 
 export const getFileInfo = new Command()
   .command("info [urls...]")
@@ -64,7 +67,7 @@ export const getFileInfo = new Command()
       const { data } = await tryCatch(
         checkIfFileExists(s3, {
           Bucket: bucketName,
-          Key: url,
+          Key: extractKeyFromURL(url),
         }),
       );
 
