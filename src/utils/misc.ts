@@ -32,14 +32,14 @@ export function constructFileUrl(key: string) {
   return `https://${domain}/${key}`;
 }
 
-export function getFilenameExtension(filename) {
+export function getFilenameExtension(filename: string) {
   const base = filename.substring(filename.lastIndexOf("/") + 1); // remove path if any
   const lastDot = base.lastIndexOf(".");
   if (lastDot === -1 || lastDot === 0) return ""; // no extension or hidden file
   return base.substring(lastDot + 1);
 }
 
-export const cancelGracefully = (message?: string, bye?: boolean = true) => {
+export const cancelGracefully = (message?: string, bye: boolean = true) => {
   console.log(chalk.green(message ? message : "Cancelled"));
   if (bye) console.log(chalk.cyanBright.bold("\nBye!\n"));
   process.exit(0);

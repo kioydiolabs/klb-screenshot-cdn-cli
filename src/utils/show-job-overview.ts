@@ -16,7 +16,7 @@ export function showJobOverview(inputs: {
   filesPurged?: number;
   urls?: number;
   filesUploaded?: number;
-  onlyHeader?: booleab;
+  onlyHeader?: boolean;
 }) {
   if (inputs.onlyHeader) {
     return chalk.bgWhiteBright.black.bold("\n\nJob overview:\n");
