@@ -98,7 +98,9 @@ export const getFileInfo = new Command()
 
     console.log(table.toString());
 
-    await askToCheckForIssues(spinner);
+    if (error) {
+      await askToCheckForIssues(spinner);
+    }
 
     console.log(chalk.cyanBright.bold("Bye!\n"));
     process.exit(0);
