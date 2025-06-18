@@ -86,7 +86,7 @@ export const getFileInfo = new Command()
       }
     });
 
-    const spinner = ora(chalk.green("Uploading file...")).start();
+    const spinner = ora(chalk.green("Fetching file information...")).start();
     await Promise.all(promises);
     if (countOfFiles == urls.length) {
       spinner.succeed("Fetched all files successfully");
