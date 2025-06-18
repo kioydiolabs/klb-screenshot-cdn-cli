@@ -24,6 +24,7 @@ import {
   extractKeyFromURL,
   getUrlsFromAllSources,
 } from "../utils/accept-urls.js";
+import inquirer from "inquirer";
 
 export const getFileInfo = new Command()
   .command("info [urls...]")
@@ -40,7 +41,9 @@ export const getFileInfo = new Command()
     urls = await getUrlsFromAllSources(urls, options.file);
 
     if (urls.length < 1) {
-      createWarning("You haven't provided any URLs of files to delete.");
+      createWarning(
+        "You haven't provided any URLs of files to try and fetch  .",
+      );
       process.exit(1);
     }
 
@@ -61,10 +64,16 @@ export const getFileInfo = new Command()
       style: { head: ["cyan"], border: ["white"] },
     });
 
-    let error: boolean = false;
+    const errors = new Table({
+      head: ["URL", "Error Message"],
+      // colWidths: [60, 15],
+      style: { head: ["cyan"], border: ["white"] },
+    });
+
+    let globalError: boolean = false;
     let countOfFiles: number = 0;
     const promises = urls.map(async (url: string) => {
-      const { data } = await tryCatch(
+      const { error, data } = await tryCatch(
         checkIfFileExists(s3, {
           Bucket: bucketName,
           Key: extractKeyFromURL(url),
@@ -82,23 +91,45 @@ export const getFileInfo = new Command()
       }
 
       if (error) {
-        error = true;
+        globalError = true;
+        errors.push([url, error.message]);
       }
     });
 
+    let showErrors: boolean = false;
     const spinner = ora(chalk.green("Fetching file information...")).start();
     await Promise.all(promises);
     if (countOfFiles == urls.length) {
       spinner.succeed("Fetched all files successfully");
     } else if (countOfFiles < urls.length && countOfFiles > 0) {
       spinner.info("Partially failed");
+      showErrors = true;
     } else if (countOfFiles == 0) {
+      showErrors = true;
       spinner.fail("Failed to fetch any files.");
     }
 
     console.log(table.toString());
 
-    if (error) {
+    if (showErrors || globalError) {
+      const answer = await inquirer.prompt([
+        {
+          type: "confirm",
+          name: "showErrors",
+          message: "There were errors. Show details?",
+          default: true,
+        },
+      ]);
+
+      if (answer.showErrors) {
+        createWarning(
+          "The following files could not be fetched. The errors are described below:",
+        );
+        console.log(errors.toString());
+      }
+    }
+
+    if (globalError) {
       await askToCheckForIssues(spinner);
     }
 
