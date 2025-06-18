@@ -21,8 +21,7 @@ import { deleteCommand } from "./commands/delete.js";
 import { purgeCacheCommand } from "./commands/purge-cache.js";
 import { banner } from "./utils/banner.js";
 import { uploadCommand } from "./commands/upload.js";
-import { getCipherInfo } from "node:crypto";
-import { getFileInfo } from "./commands/info";
+import { getFileInfo } from "./commands/info.js";
 
 dotenv.config();
 
