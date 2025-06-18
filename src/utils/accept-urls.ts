@@ -21,6 +21,11 @@ or stdin input from piping something into the command,
 or even a --file that uses a txt with a url on each line
  */
 
+export function extractKeyFromURL(url: string) {
+  const index = url.indexOf(domain);
+  return url.substring(index + domain.length + 1);
+}
+
 export function constructUrlIfStringIsKey(input: string) {
   if (input.includes(domain)) {
     return input;
